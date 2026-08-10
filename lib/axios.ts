@@ -1,5 +1,5 @@
-import axios from "axios";
 import { env } from "@/config/env";
+import axios, { type AxiosError, type AxiosRequestHeaders } from "axios";
 
 export const api = axios.create({
   baseURL: env.apiUrl,
@@ -9,24 +9,49 @@ export const api = axios.create({
   },
 });
 
-api.interceptors.request.use((config) => {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+api.interceptors.request.use(
+  async (config) => {
+    if (typeof window === "undefined") {
+      const { cookies } = await import("next/headers");
+      const cookieStore = await cookies();
+      const token = cookieStore.get("accessToken")?.value;
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+      if (token) {
+        const headers = config.headers as AxiosRequestHeaders | undefined;
+        config.headers = {
+          ...(headers ?? {}),
+          Authorization: `Bearer ${token}`,
+        } as AxiosRequestHeaders;
+      }
+    }
 
-  return config;
-});
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
 
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      console.log("Unauthorized");
+  (error: AxiosError) => {
+    const status = error.response?.status;
+
+    switch (status) {
+      case 401:
+        console.error("Unauthorized");
+        break;
+      case 403:
+        console.error("Forbidden");
+        break;
+      case 404:
+        console.error("Not Found");
+        break;
+      case 500:
+        console.error("Server Error");
+        break;
+      default:
+        break;
     }
 
     return Promise.reject(error);
-  }
+  },
 );

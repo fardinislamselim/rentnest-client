@@ -176,7 +176,7 @@ export default function PropertiesSection() {
               No Properties Found
             </h3>
             <p className="text-sm text-muted-foreground">
-              We couldn't find any properties matching your current filter criteria.
+              We couldn&apos;t find any properties matching your current filter criteria.
             </p>
           </div>
           {hasActiveFilters && (

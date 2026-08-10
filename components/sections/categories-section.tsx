@@ -63,7 +63,7 @@ const DEFAULT_CATEGORIES = [
 ];
 
 export default function CategoriesSection() {
-  const { data: apiCategories, isLoading, isError } = useCategories();
+  const { data: apiCategories, isLoading } = useCategories();
 
   // Combine backend categories or use DEFAULT_CATEGORIES if backend list is empty
   const displayCategories =
