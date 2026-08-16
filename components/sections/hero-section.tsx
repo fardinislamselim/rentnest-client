@@ -154,11 +154,22 @@ export default function HeroSection() {
                       <option value="" className="bg-background">
                         {categoriesLoading ? "Loading..." : "All Categories"}
                       </option>
-                      {categories?.map((cat) => (
-                        <option key={cat.id} value={cat.id} className="bg-background">
-                          {cat.name}
-                        </option>
-                      ))}
+                      {categories && categories.length > 0 ? (
+                        categories.map((cat) => (
+                          <option key={cat.id} value={cat.name} className="bg-background">
+                            {cat.name}
+                          </option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="Apartment" className="bg-background">Apartment</option>
+                          <option value="Villa" className="bg-background">Villa</option>
+                          <option value="Studio" className="bg-background">Studio</option>
+                          <option value="Office" className="bg-background">Office</option>
+                          <option value="Duplex" className="bg-background">Duplex</option>
+                          <option value="Family House" className="bg-background">Family House</option>
+                        </>
+                      )}
                     </select>
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none border-l border-r border-t border-transparent border-t-muted-foreground border-4 mt-0.5" />
                   </div>

@@ -37,7 +37,7 @@ api.interceptors.response.use(
 
     switch (status) {
       case 401:
-        console.error("Unauthorized");
+        // Unauthorized requests are handled by callers like getMe(), so avoid noisy logs.
         break;
       case 403:
         console.error("Forbidden");

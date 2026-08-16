@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Lock, LogIn, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import { loginAction } from "@/app/(auth)/_action/authAction";
 
@@ -17,9 +18,9 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { redirect } from "next/navigation";
 
 export default function LoginForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
   const [state, action, pending] = useActionState(loginAction, {
@@ -31,11 +32,11 @@ export default function LoginForm() {
     if (!state.message) return;
     if (state.success) {
       toast.success(state.message);
-      redirect("/deshboard");
+      router.push(state.redirectTo ?? "/dashboard");
     } else {
       toast.error(state.message);
     }
-  }, [state]);
+  }, [router, state]);
 
   return (
     <Card className="w-full border-border/60 shadow-2xl backdrop-blur-xl">

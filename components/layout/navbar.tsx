@@ -99,7 +99,7 @@ export function Navbar({ user }: NavbarProps) {
           {currentUser ? (
             <div className="flex items-center gap-3">
               <Link
-                href="/deshboard"
+                href="/dashboard"
                 className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/80"
               >
                 Dashboard
@@ -203,7 +203,7 @@ export function Navbar({ user }: NavbarProps) {
               {currentUser ? (
                 <div className="flex flex-col gap-3 border-t border-border/40 pt-4">
                   <Link
-                    href="/deshboard"
+                    href="/dashboard"
                     onClick={() => setMobileOpen(false)}
                     className="rounded-lg border border-border/60 bg-muted px-4 py-3 text-sm font-medium text-foreground transition hover:bg-muted/80"
                   >
