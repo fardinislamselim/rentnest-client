@@ -38,6 +38,15 @@ export function Navbar({ user }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const { data: clientUser } = useMe();
   const currentUser = user ?? clientUser;
+  const actualUser = (currentUser as { data?: User } | null)?.data ?? currentUser;
+  const userRole = actualUser?.role;
+
+  const dashboardHref =
+    userRole === "LANDLORD"
+      ? "/landlord-dashboard"
+      : userRole === "ADMIN"
+      ? "/admin-dashboard"
+      : "/dashboard";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 shadow-sm backdrop-blur-md transition-all duration-300">
@@ -62,7 +71,7 @@ export function Navbar({ user }: NavbarProps) {
               >
                 {link.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-0 h-[2px] w-full rounded-full bg-blue-600 dark:bg-blue-400" />
+                  <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-blue-600 dark:bg-blue-400" />
                 )}
               </Link>
             );
@@ -99,7 +108,7 @@ export function Navbar({ user }: NavbarProps) {
           {currentUser ? (
             <div className="flex items-center gap-3">
               <Link
-                href="/dashboard"
+                href={dashboardHref}
                 className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/80"
               >
                 Dashboard
@@ -203,7 +212,7 @@ export function Navbar({ user }: NavbarProps) {
               {currentUser ? (
                 <div className="flex flex-col gap-3 border-t border-border/40 pt-4">
                   <Link
-                    href="/dashboard"
+                    href={dashboardHref}
                     onClick={() => setMobileOpen(false)}
                     className="rounded-lg border border-border/60 bg-muted px-4 py-3 text-sm font-medium text-foreground transition hover:bg-muted/80"
                   >

@@ -39,8 +39,8 @@ export const loginAction = async (
 
     const decoded = jwt.decode(result.data.accessToken) as JwtPayload | null;
     const redirectTo =
-      decoded?.role === "TENANT"
-        ? "/dashboard"
+      decoded?.role === "LANDLORD"
+        ? "/landlord-dashboard"
         : decoded?.role === "ADMIN"
         ? "/admin-dashboard"
         : "/dashboard";
@@ -151,10 +151,13 @@ export const registerAction = async (
             maxAge: 60 * 60 * 24 * 7,
           });
 
+          const redirectTo =
+            role === "LANDLORD" ? "/landlord-dashboard" : "/dashboard";
+
           return {
             success: true,
             message: "Account created and logged in successfully!",
-            redirectTo: "/dashboard",
+            redirectTo,
           };
         }
       } catch {
