@@ -1,9 +1,8 @@
 import React from "react";
 import Container from "@/components/layout/container";
 import { getMe } from "@/service/getMe";
-import { UserCircle, Building2, Heart, FileText } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { UserCircle, Building2 } from "lucide-react";
+import TenantDashboardContent from "@/components/dashboard/tenant-dashboard-content";
 
 export default async function DashboardPage() {
   const user = await getMe();
@@ -50,56 +49,42 @@ export default async function DashboardPage() {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-semibold uppercase text-muted-foreground">
-                    Active Rentals
+                    Quick Browse
                   </span>
                   <span className="font-heading text-lg font-bold text-foreground">
-                    0 Active
+                    Available Properties
                   </span>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Explore available properties to rent.
+                Explore new listings in your area.
               </p>
             </div>
 
-            <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+            <div className="flex items-center justify-between flex-wrap gap-2 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:bg-purple-400/10 dark:text-purple-400">
-                  <Heart className="h-6 w-6" />
+                  <Building2 className="h-6 w-6" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-semibold uppercase text-muted-foreground">
-                    Saved Homes
+                    Member Since
                   </span>
                   <span className="font-heading text-lg font-bold text-foreground">
-                    0 Favorites
+                    {user?.createdAt
+                      ? new Date(user.createdAt).toLocaleDateString("en-BD", {
+                          year: "numeric",
+                          month: "short",
+                        })
+                      : "N/A"}
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Bookmark properties while browsing.
-              </p>
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
-            <h2 className="font-heading text-xl font-bold text-foreground">
-              Quick Actions
-            </h2>
-            <div className="flex flex-wrap gap-4">
-              <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-                <Link href="/properties" className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4" /> Browse Properties
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="rounded-xl">
-                <Link href="/" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" /> Go to Home
-                </Link>
-              </Button>
-            </div>
-          </div>
+          {/* Tenant Dashboard: Stats, Recent Rentals & Quick Actions */}
+          <TenantDashboardContent />
         </div>
       </Container>
     </div>
