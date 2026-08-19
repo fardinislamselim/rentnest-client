@@ -114,6 +114,15 @@ export function Navbar({ user }: NavbarProps) {
                 Dashboard
               </Link>
 
+              {userRole === "TENANT" && (
+                <Link
+                  href="/dashboard/rental-requests"
+                  className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/80"
+                >
+                  Rental Requests
+                </Link>
+              )}
+
               <form action={logoutAction} className="m-0">
                 <Button
                   type="submit"
@@ -218,6 +227,15 @@ export function Navbar({ user }: NavbarProps) {
                   >
                     Dashboard
                   </Link>
+                  {userRole === "TENANT" && (
+                    <Link
+                      href="/dashboard/rental-requests"
+                      onClick={() => setMobileOpen(false)}
+                      className="rounded-lg border border-border/60 bg-muted px-4 py-3 text-sm font-medium text-foreground transition hover:bg-muted/80"
+                    >
+                      Rental Requests
+                    </Link>
+                  )}
                   <form action={logoutAction} className="m-0">
                     <Button
                       type="submit"
