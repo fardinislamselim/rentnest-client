@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Container from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
+import RentalRequestDialog from "@/components/property/rental-request-dialog";
 import { api } from "@/lib/axios";
 import {
   MapPin,
@@ -46,7 +47,8 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
 
   const title = property?.title || "Modern Rental Property";
   const location = property?.location || "Dhaka, Bangladesh";
-  const price = property?.price ? `BDT ${property.price.toLocaleString()}` : "BDT 35,000";
+  const rawPrice = property?.price ?? 35000;
+  const price = rawPrice ? `BDT ${rawPrice.toLocaleString()}` : "BDT 35,000";
   const bedrooms = property?.bedrooms ?? 3;
   const bathrooms = property?.bathrooms ?? 2;
   const area = property?.size || property?.area || 1450;
@@ -185,9 +187,11 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
               </p>
 
               <div className="flex flex-col gap-3 mt-2">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl py-5 font-semibold">
-                  Request Rental Booking
-                </Button>
+                <RentalRequestDialog
+                  propertyId={id}
+                  propertyTitle={title}
+                  propertyPrice={rawPrice}
+                />
                 <Button variant="outline" className="w-full rounded-xl py-5">
                   Contact Landlord
                 </Button>
