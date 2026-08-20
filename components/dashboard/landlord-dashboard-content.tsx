@@ -354,7 +354,7 @@ export default function LandlordDashboardContent() {
         </h2>
         <div className="flex flex-wrap gap-4">
           <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl gap-2 cursor-pointer">
-            <Link href="/properties" className="flex items-center gap-2">
+            <Link href="/landlord-dashboard/create-property" className="flex items-center gap-2">
               <PlusCircle className="h-4 w-4" />
               Post New Property
             </Link>
