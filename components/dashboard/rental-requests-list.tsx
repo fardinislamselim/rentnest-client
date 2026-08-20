@@ -379,7 +379,7 @@ export default function RentalRequestsList() {
                             title="View Details"
                           >
                             <Link
-                              href={`/properties/${property?.id || rental.propertyId}`}
+                              href={`/dashboard/rental-requests/${rental.id}`}
                             >
                               <Eye className="h-4 w-4" />
                             </Link>

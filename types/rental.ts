@@ -7,6 +7,7 @@ export interface RentalProperty {
   price: number;
   bedrooms: number;
   bathrooms: number;
+  size?: number;
   images: string[];
 }
 
@@ -36,6 +37,12 @@ export interface RentalRequest {
   createdAt: string;
   updatedAt: string;
   property: RentalProperty;
+  tenant?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+  };
   landlord?: RentalLandlord;
   payment?: RentalPayment | null;
 }
