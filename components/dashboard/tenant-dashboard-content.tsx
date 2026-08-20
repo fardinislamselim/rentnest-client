@@ -14,6 +14,7 @@ import {
   Building2,
   Calendar,
   Eye,
+  History,
 } from "lucide-react";
 import { useMyRentals } from "@/hooks/use-my-rentals";
 import { useMyPayments } from "@/hooks/use-my-payments";
@@ -81,7 +82,7 @@ const formatDate = (dateString: string) => {
   });
 };
 
-function StatCardSkeleton({ label }: { label: string }) {
+function StatCardSkeleton() {
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
       <div className="flex items-center gap-3">
@@ -198,7 +199,7 @@ export default function TenantDashboardContent() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <StatCardSkeleton key={i} label={statCards[i]?.label || "Loading"} />
+            <StatCardSkeleton key={i} />
           ))
         ) : (
           statCards.map((stat) => {
@@ -350,6 +351,16 @@ export default function TenantDashboardContent() {
             <Link href="/properties" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
               Browse Properties
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="rounded-xl gap-2 cursor-pointer"
+          >
+            <Link href="/dashboard/payment-history" className="flex items-center gap-2">
+              <History className="h-4 w-4" />
+              Payment History
             </Link>
           </Button>
           <Button
