@@ -23,6 +23,7 @@ import type { User } from "@/types/user";
 
 interface NavbarProps {
   user?: User | null;
+  variant?: "public" | "dashboard";
 }
 
 const navLinks = [
@@ -32,7 +33,7 @@ const navLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
-export function Navbar({ user }: NavbarProps) {
+export function Navbar({ user, variant = "public" }: NavbarProps) {
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -41,6 +42,7 @@ export function Navbar({ user }: NavbarProps) {
   const actualUser = (currentUser as { data?: User } | null)?.data ?? currentUser;
   const userRole = actualUser?.role;
 
+  const isDashboard = variant === "dashboard";
   const dashboardHref =
     userRole === "LANDLORD"
       ? "/landlord-dashboard"
@@ -55,76 +57,98 @@ export function Navbar({ user }: NavbarProps) {
           <Logo />
         </div>
 
-        <nav className="hidden items-center gap-6 md:flex">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "relative py-1.5 text-sm font-medium transition-colors duration-200",
-                  isActive
-                    ? "text-blue-600 dark:text-blue-400"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {link.label}
-                {isActive && (
-                  <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-blue-600 dark:bg-blue-400" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+        {!isDashboard && (
+          <nav className="hidden items-center gap-6 md:flex">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "relative py-1.5 text-sm font-medium transition-colors duration-200",
+                    isActive
+                      ? "text-blue-600 dark:text-blue-400"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {link.label}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-blue-600 dark:bg-blue-400" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
 
         <div className="hidden items-center gap-4 md:flex">
-          <div className="relative flex items-center">
-            <div
-              className={cn(
-                "flex items-center rounded-full border border-border/60 bg-muted/40 px-3 py-1 transition-all duration-300",
-                searchOpen
-                  ? "w-48 bg-background ring-2 ring-blue-500/10 lg:w-64"
-                  : "w-10 cursor-pointer overflow-hidden",
-              )}
-              onClick={() => !searchOpen && setSearchOpen(true)}
-            >
-              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search properties..."
+          {!isDashboard && (
+            <div className="relative flex items-center">
+              <div
                 className={cn(
-                  "w-full border-0 bg-transparent pl-2 text-xs outline-none placeholder:text-muted-foreground",
-                  !searchOpen && "pointer-events-none opacity-0",
+                  "flex items-center rounded-full border border-border/60 bg-muted/40 px-3 py-1 transition-all duration-300",
+                  searchOpen
+                    ? "w-48 bg-background ring-2 ring-blue-500/10 lg:w-64"
+                    : "w-10 cursor-pointer overflow-hidden",
                 )}
-                onBlur={() => setSearchOpen(false)}
-                autoFocus={searchOpen}
-              />
+                onClick={() => !searchOpen && setSearchOpen(true)}
+              >
+                <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search properties..."
+                  className={cn(
+                    "w-full border-0 bg-transparent pl-2 text-xs outline-none placeholder:text-muted-foreground",
+                    !searchOpen && "pointer-events-none opacity-0",
+                  )}
+                  onBlur={() => setSearchOpen(false)}
+                  autoFocus={searchOpen}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <ThemeToggle />
 
           {currentUser ? (
             <div className="flex items-center gap-3">
-              <Link
-                href={dashboardHref}
-                className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/80"
-              >
-                Dashboard
-              </Link>
+              {isDashboard ? (
+                <Link
+                  href={dashboardHref}
+                  className={cn(
+                    "rounded-lg border border-border/60 bg-muted px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/80",
+                    pathname === dashboardHref && "bg-blue-600 text-white hover:bg-blue-700",
+                  )}
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <Link
+                  href={dashboardHref}
+                  className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/80"
+                >
+                  Dashboard
+                </Link>
+              )}
 
-              {userRole === "TENANT" && (
+              {userRole === "TENANT" && isDashboard && (
                 <>
                   <Link
                     href="/dashboard/rental-requests"
-                    className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/80"
+                    className={cn(
+                      "rounded-lg border border-border/60 bg-muted px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/80",
+                      pathname.startsWith("/dashboard/rental-requests") && "bg-blue-600 text-white hover:bg-blue-700",
+                    )}
                   >
                     Rental Requests
                   </Link>
                   <Link
                     href="/dashboard/payment-history"
-                    className="rounded-lg border border-border/60 bg-muted px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/80"
+                    className={cn(
+                      "rounded-lg border border-border/60 bg-muted px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted/80",
+                      pathname.startsWith("/dashboard/payment-history") && "bg-blue-600 text-white hover:bg-blue-700",
+                    )}
                   >
                     Payment History
                   </Link>
@@ -204,81 +228,103 @@ export function Navbar({ user }: NavbarProps) {
                   </SheetTitle>
                 </SheetHeader>
 
-                <nav className="flex flex-col gap-4">
-                  {navLinks.map((link) => {
-                    const isActive = pathname === link.href;
-                    return (
+                {!isDashboard && (
+                  <nav className="flex flex-col gap-4">
+                    {navLinks.map((link) => {
+                      const isActive = pathname === link.href;
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setMobileOpen(false)}
+                          className={cn(
+                            "rounded-lg px-2 py-1.5 text-base font-semibold transition-colors duration-200",
+                            isActive
+                              ? "bg-blue-500/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400"
+                              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                          )}
+                        >
+                          {link.label}
+                        </Link>
+                      );
+                    })}
+                  </nav>
+                )}
+
+                {currentUser ? (
+                  <div className="flex flex-col gap-3 border-t border-border/40 pt-4">
+                    {isDashboard && (
                       <Link
-                        key={link.href}
-                        href={link.href}
+                        href={dashboardHref}
                         onClick={() => setMobileOpen(false)}
                         className={cn(
-                          "rounded-lg px-2 py-1.5 text-base font-semibold transition-colors duration-200",
-                          isActive
-                            ? "bg-blue-500/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400"
-                            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                          "rounded-lg border border-border/60 bg-muted px-4 py-3 text-sm font-medium text-foreground transition hover:bg-muted/80",
+                          pathname === dashboardHref && "bg-blue-600 text-white hover:bg-blue-700",
                         )}
                       >
-                        {link.label}
+                        Dashboard
                       </Link>
-                    );
-                  })}
-                </nav>
-              </div>
-
-              {currentUser ? (
-                <div className="flex flex-col gap-3 border-t border-border/40 pt-4">
-                  <Link
-                    href={dashboardHref}
-                    onClick={() => setMobileOpen(false)}
-                    className="rounded-lg border border-border/60 bg-muted px-4 py-3 text-sm font-medium text-foreground transition hover:bg-muted/80"
-                  >
-                    Dashboard
-                  </Link>
-                  {userRole === "TENANT" && (
-                    <>
+                    )}
+                    {userRole === "TENANT" && isDashboard && (
+                      <>
+                        <Link
+                          href="/dashboard/rental-requests"
+                          onClick={() => setMobileOpen(false)}
+                          className={cn(
+                            "rounded-lg border border-border/60 bg-muted px-4 py-3 text-sm font-medium text-foreground transition hover:bg-muted/80",
+                            pathname.startsWith("/dashboard/rental-requests") && "bg-blue-600 text-white hover:bg-blue-700",
+                          )}
+                        >
+                          Rental Requests
+                        </Link>
+                        <Link
+                          href="/dashboard/payment-history"
+                          onClick={() => setMobileOpen(false)}
+                          className={cn(
+                            "rounded-lg border border-border/60 bg-muted px-4 py-3 text-sm font-medium text-foreground transition hover:bg-muted/80",
+                            pathname.startsWith("/dashboard/payment-history") && "bg-blue-600 text-white hover:bg-blue-700",
+                          )}
+                        >
+                          Payment History
+                        </Link>
+                      </>
+                    )}
+                    {!isDashboard && (
                       <Link
-                        href="/dashboard/rental-requests"
+                        href={dashboardHref}
                         onClick={() => setMobileOpen(false)}
                         className="rounded-lg border border-border/60 bg-muted px-4 py-3 text-sm font-medium text-foreground transition hover:bg-muted/80"
                       >
-                        Rental Requests
+                        Dashboard
                       </Link>
-                      <Link
-                        href="/dashboard/payment-history"
-                        onClick={() => setMobileOpen(false)}
-                        className="rounded-lg border border-border/60 bg-muted px-4 py-3 text-sm font-medium text-foreground transition hover:bg-muted/80"
+                    )}
+                    <form action={logoutAction} className="m-0">
+                      <Button
+                        type="submit"
+                        className="w-full rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"
                       >
-                        Payment History
+                        <LogOut className="mr-2 h-4 w-4" /> Logout
+                      </Button>
+                    </form>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3 border-t border-border/40 pt-4">
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href="/login" onClick={() => setMobileOpen(false)}>
+                        Login
                       </Link>
-                    </>
-                  )}
-                  <form action={logoutAction} className="m-0">
-                    <Button
-                      type="submit"
-                      className="w-full rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" /> Logout
                     </Button>
-                  </form>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3 border-t border-border/40 pt-4">
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href="/login" onClick={() => setMobileOpen(false)}>
-                      Login
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    className="w-full bg-blue-600 text-white hover:bg-blue-700"
-                  >
-                    <Link href="/register" onClick={() => setMobileOpen(false)}>
-                      Register
-                    </Link>
-                  </Button>
-                </div>
-              )}
+                    <Button
+                      asChild
+                      className="w-full bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                      <Link href="/register" onClick={() => setMobileOpen(false)}>
+                        Register
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
             </SheetContent>
           </Sheet>
         </div>
