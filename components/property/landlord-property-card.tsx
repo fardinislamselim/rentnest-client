@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { Property } from "@/types/property";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +28,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useDeleteProperty } from "@/hooks/use-delete-property";
+import { useTogglePropertyAvailability } from "@/hooks/use-toggle-availability";
 import { useState } from "react";
 
 interface LandlordPropertyCardProps {
@@ -49,6 +52,7 @@ export default function LandlordPropertyCard({
       "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80"
   );
   const { deleteProperty, isSubmitting } = useDeleteProperty();
+  const { toggleAvailability, isToggling } = useTogglePropertyAvailability();
 
   const categoryName =
     typeof property.category === "object"
@@ -175,6 +179,41 @@ export default function LandlordPropertyCard({
                 })
               : "N/A"}
           </span>
+        </div>
+
+        {/* Availability Toggle */}
+        <div className="flex items-center justify-between py-3 border-t border-border/40">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-foreground">Availability</span>
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium",
+                availabilityColor
+              )}
+            >
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  property.available === false
+                    ? "bg-red-500"
+                    : property.available === true
+                      ? "bg-emerald-500"
+                      : "bg-gray-500"
+                )}
+              />
+              {availabilityLabel}
+            </span>
+          </div>
+          <Switch
+            checked={property.available === true}
+            onCheckedChange={async () => {
+              await toggleAvailability(property.id, property.available === true);
+            }}
+            disabled={isToggling}
+            className={cn(
+              "data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-red-500"
+            )}
+          />
         </div>
 
         {/* Actions */}

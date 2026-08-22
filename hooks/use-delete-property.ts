@@ -14,7 +14,7 @@ export const useDeleteProperty = () => {
       if (!data.success) {
         throw new Error(data.message || "Failed to delete property");
       }
-      toast.success("Property deleted successfully!");
+      toast.success("🗑️ Property deleted successfully!");
       queryClient.invalidateQueries({ queryKey: ["my-properties"] });
       queryClient.invalidateQueries({ queryKey: ["landlord-dashboard"] });
       return true;
