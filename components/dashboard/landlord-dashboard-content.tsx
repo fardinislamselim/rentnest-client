@@ -293,7 +293,7 @@ export default function LandlordDashboardContent() {
             Recent Properties
           </h2>
           <Button asChild variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-            <Link href="/properties" className="flex items-center gap-1">
+            <Link href="/landlord-dashboard/my-properties" className="flex items-center gap-1">
               View All <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
           </Button>
@@ -360,7 +360,7 @@ export default function LandlordDashboardContent() {
             </Link>
           </Button>
           <Button asChild variant="outline" className="rounded-xl gap-2 cursor-pointer">
-            <Link href="/properties" className="flex items-center gap-2">
+               <Link href="/landlord-dashboard/my-properties" className="flex items-center gap-2">
               <List className="h-4 w-4" />
               Manage Properties
             </Link>
