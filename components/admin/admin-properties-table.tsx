@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import TableSkeleton from "@/components/ui/table-skeleton";
 import {
   Table,
   TableBody,
@@ -73,24 +73,6 @@ const SORT_OPTIONS: {
   { value: "price-asc", label: "Lowest rent", sortBy: "price", sortOrder: "asc" },
   { value: "title", label: "Title A–Z", sortBy: "title", sortOrder: "asc" },
 ];
-
-function RowSkeleton() {
-  return (
-    <TableRow>
-      <TableCell>
-        <div className="space-y-1.5">
-          <Skeleton className="h-4 w-44 rounded" />
-          <Skeleton className="h-3 w-28 rounded" />
-        </div>
-      </TableCell>
-      <TableCell><Skeleton className="h-4 w-32 rounded" /></TableCell>
-      <TableCell><Skeleton className="h-4 w-20 rounded" /></TableCell>
-      <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-      <TableCell><Skeleton className="h-4 w-24 rounded" /></TableCell>
-      <TableCell className="text-right"><Skeleton className="ml-auto h-8 w-20 rounded-xl" /></TableCell>
-    </TableRow>
-  );
-}
 
 export function AdminPropertiesTable() {
   const [search, setSearch] = useState("");
@@ -253,6 +235,9 @@ export function AdminPropertiesTable() {
         ) : null}
       </div>
 
+      {isLoading ? (
+        <TableSkeleton columns={6} rows={5} avatar badge action />
+      ) : (
       <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
         <div className={cn("overflow-x-auto", isFetching && !isLoading && "opacity-70")}>
           <Table>
@@ -267,9 +252,7 @@ export function AdminPropertiesTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, index) => <RowSkeleton key={index} />)
-              ) : error ? (
+              {error ? (
                 <TableRow>
                   <TableCell colSpan={6} className="py-16 text-center">
                     <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10">
@@ -399,7 +382,7 @@ export function AdminPropertiesTable() {
           </Table>
         </div>
 
-        {!isLoading && !error && meta ? (
+        {!error && meta ? (
           <AdminPagination
             page={meta.page}
             limit={meta.limit}
@@ -408,7 +391,7 @@ export function AdminPropertiesTable() {
             label="properties"
           />
         ) : null}
-      </div>
+      </div>)}
 
       <AlertDialog
         open={pendingDelete !== null}

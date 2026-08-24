@@ -21,6 +21,7 @@ import { useLandlordDashboard } from "@/hooks/use-landlord-dashboard";
 import { api } from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
 import { RentalStatus } from "@/types/rental";
 import type { RentalRequest } from "@/types/rental";
 import type { Property } from "@/types/property";
@@ -66,21 +67,7 @@ const STATUS_CONFIG: Record<
     icon: CheckCircle,
     label: "Completed",
   },
-};
-
-function StatCardSkeleton() {
-  return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
-      <div className="flex items-center gap-3">
-        <Skeleton className="h-12 w-12 rounded-xl" />
-        <div className="flex flex-col flex-1">
-          <Skeleton className="h-3 w-24 rounded" />
-          <Skeleton className="h-6 w-16 rounded mt-1" />
-        </div>
-      </div>
-    </div>
-  );
-}
+  };
 
 function RecentItemSkeleton() {
   return (
@@ -176,13 +163,11 @@ export default function LandlordDashboardContent() {
   return (
     <div className="flex flex-col gap-8">
       {/* Summary Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {statsLoading ? (
-          Array.from({ length: 6 }).map((_, i) => (
-            <StatCardSkeleton key={i} />
-          ))
-        ) : (
-          statCards.map((stat) => {
+      {statsLoading ? (
+        <DashboardSkeleton count={6} columns="lg" />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {statCards.map((stat) => {
             const Icon = stat.icon;
             return (
               <motion.div
@@ -211,9 +196,9 @@ export default function LandlordDashboardContent() {
                 </div>
               </motion.div>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
 
       {/* Recent Rental Requests */}
       <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">

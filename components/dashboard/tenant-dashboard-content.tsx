@@ -22,6 +22,7 @@ import { RentalStatus } from "@/types/rental";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
 
 // Color mapping for rental status badges
 const STATUS_COLORS: Record<RentalStatus, string> = {
@@ -81,21 +82,6 @@ const formatDate = (dateString: string) => {
     day: "numeric",
   });
 };
-
-function StatCardSkeleton() {
-  return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
-      <div className="flex items-center gap-3">
-        <Skeleton className="h-12 w-12 rounded-xl" />
-        <div className="flex flex-col flex-1">
-          <Skeleton className="h-3 w-20 rounded" />
-          <Skeleton className="h-6 w-16 rounded mt-1" />
-        </div>
-      </div>
-      <Skeleton className="h-3 w-full max-w-[200px] rounded mt-2" />
-    </div>
-  );
-}
 
 function RecentRentalSkeleton() {
   return (
@@ -196,13 +182,11 @@ export default function TenantDashboardContent() {
   return (
     <div className="flex flex-col gap-8">
       {/* Summary Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => (
-            <StatCardSkeleton key={i} />
-          ))
-        ) : (
-          statCards.map((stat) => {
+      {isLoading ? (
+        <DashboardSkeleton count={6} columns="md" />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {statCards.map((stat) => {
             const Icon = stat.icon;
             return (
               <motion.div
@@ -237,9 +221,9 @@ export default function TenantDashboardContent() {
                 )}
               </motion.div>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
 
       {/* Recent Rental Requests */}
       <Card className="border-border/60 bg-card/80 dark:bg-zinc-900/80 backdrop-blur-xl">

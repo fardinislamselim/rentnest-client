@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import UserTableSkeleton from "@/components/admin/user-table-skeleton";
 import {
   Table,
   TableBody,
@@ -64,26 +64,6 @@ type PendingAction =
   | { kind: "unban"; user: AdminUser }
   | { kind: "delete"; user: AdminUser }
   | null;
-
-function RowSkeleton() {
-  return (
-    <TableRow>
-      <TableCell>
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-9 w-9 rounded-full" />
-          <div className="space-y-1.5">
-            <Skeleton className="h-4 w-28 rounded" />
-            <Skeleton className="h-3 w-40 rounded" />
-          </div>
-        </div>
-      </TableCell>
-      <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-      <TableCell><Skeleton className="h-6 w-16 rounded-full" /></TableCell>
-      <TableCell><Skeleton className="h-4 w-24 rounded" /></TableCell>
-      <TableCell className="text-right"><Skeleton className="ml-auto h-8 w-24 rounded-xl" /></TableCell>
-    </TableRow>
-  );
-}
 
 export function AdminUsersTable({ currentUserId }: { currentUserId?: string }) {
   const [search, setSearch] = useState("");
@@ -217,6 +197,9 @@ export function AdminUsersTable({ currentUserId }: { currentUserId?: string }) {
         </p>
       ) : null}
 
+      {isLoading ? (
+        <UserTableSkeleton rows={5} />
+      ) : (
       <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
         <div className="overflow-x-auto">
           <Table>
@@ -230,9 +213,7 @@ export function AdminUsersTable({ currentUserId }: { currentUserId?: string }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, index) => <RowSkeleton key={index} />)
-              ) : error ? (
+              {error ? (
                 <TableRow>
                   <TableCell colSpan={5} className="py-16 text-center">
                     <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10">
@@ -379,7 +360,7 @@ export function AdminUsersTable({ currentUserId }: { currentUserId?: string }) {
           </Table>
         </div>
 
-        {!isLoading && !error ? (
+         {!error ? (
           <AdminPagination
             page={Math.min(page, view.totalPages)}
             limit={PAGE_SIZE}
@@ -388,7 +369,7 @@ export function AdminUsersTable({ currentUserId }: { currentUserId?: string }) {
             label="users"
           />
         ) : null}
-      </div>
+      </div>)}
 
       <AlertDialog
         open={pendingAction !== null}

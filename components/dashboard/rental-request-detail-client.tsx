@@ -15,7 +15,7 @@ import {
 import { useRentalRequestDetail } from "@/hooks/use-rental-request-detail";
 import { RentalStatus } from "@/types/rental";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import PaymentSkeleton from "@/components/payment/payment-skeleton";
 import { useCreatePaymentIntent } from "@/hooks/use-create-payment-intent";
 
 interface RentalRequestDetailClientProps {
@@ -70,27 +70,7 @@ const formatDate = (dateString: string) => {
     month: "long",
     day: "numeric",
   });
-};
-
-function DetailSkeleton() {
-  return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-4 w-96" />
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <Skeleton className="h-64 w-full rounded-2xl" />
-          <Skeleton className="h-48 w-full rounded-2xl" />
-        </div>
-        <div className="flex flex-col gap-6">
-          <Skeleton className="h-48 w-full rounded-2xl" />
-        </div>
-      </div>
-    </div>
-  );
-}
+  };
 
 export default function RentalRequestDetailClient({
   id,
@@ -100,7 +80,7 @@ export default function RentalRequestDetailClient({
     useCreatePaymentIntent();
 
   if (isLoading) {
-    return <DetailSkeleton />;
+    return <PaymentSkeleton />;
   }
 
   if (error || !rental) {

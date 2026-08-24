@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import TableSkeleton from "@/components/ui/table-skeleton";
 import {
   Table,
   TableBody,
@@ -53,27 +53,6 @@ const SORT_OPTIONS: {
   { value: "start", label: "Start date", sortBy: "startDate", sortOrder: "desc" },
   { value: "status", label: "Status", sortBy: "status", sortOrder: "asc" },
 ];
-
-function RowSkeleton() {
-  return (
-    <TableRow>
-      <TableCell>
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-9 w-9 rounded-full" />
-          <div className="space-y-1.5">
-            <Skeleton className="h-4 w-24 rounded" />
-            <Skeleton className="h-3 w-36 rounded" />
-          </div>
-        </div>
-      </TableCell>
-      <TableCell><Skeleton className="h-4 w-40 rounded" /></TableCell>
-      <TableCell><Skeleton className="h-4 w-28 rounded" /></TableCell>
-      <TableCell><Skeleton className="h-4 w-20 rounded" /></TableCell>
-      <TableCell><Skeleton className="h-4 w-24 rounded" /></TableCell>
-      <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-    </TableRow>
-  );
-}
 
 export function AdminRentalsTable({
   initialStatus = "ALL",
@@ -203,6 +182,9 @@ export function AdminRentalsTable({
         ) : null}
       </div>
 
+      {isLoading ? (
+        <TableSkeleton columns={6} rows={5} avatar badge />
+      ) : (
       <div className="overflow-hidden rounded-2xl border border-border/60 bg-card">
         <div className={cn("overflow-x-auto", isFetching && !isLoading && "opacity-70")}>
           <Table>
@@ -217,9 +199,7 @@ export function AdminRentalsTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, index) => <RowSkeleton key={index} />)
-              ) : error ? (
+              {error ? (
                 <TableRow>
                   <TableCell colSpan={6} className="py-16 text-center">
                     <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/10">
@@ -337,7 +317,7 @@ export function AdminRentalsTable({
           </Table>
         </div>
 
-        {!isLoading && !error && meta ? (
+        {!error && meta ? (
           <AdminPagination
             page={meta.page}
             limit={meta.limit}
@@ -346,7 +326,7 @@ export function AdminRentalsTable({
             label="requests"
           />
         ) : null}
-      </div>
+      </div>)}
 
       <p className="text-xs text-muted-foreground">
         Read-only. Approving or rejecting a request is the property owner&apos;s

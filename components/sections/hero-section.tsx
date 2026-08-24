@@ -152,7 +152,7 @@ export default function HeroSection() {
                       className="w-full bg-muted/40 hover:bg-muted/60 dark:bg-zinc-950/40 border border-border/60 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 appearance-none text-foreground cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       <option value="" className="bg-background">
-                        {categoriesLoading ? "Loading..." : "All Categories"}
+                        All Categories
                       </option>
                       {categories && categories.length > 0 ? (
                         categories.map((cat) => (

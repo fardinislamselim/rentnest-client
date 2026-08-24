@@ -21,6 +21,7 @@ import { useCreatePaymentIntent } from "@/hooks/use-create-payment-intent";
 import { RentalStatus } from "@/types/rental";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
 
 // Color mapping for rental status badges
 const STATUS_CONFIG: Record<
@@ -93,21 +94,6 @@ function StatusBadge({ status }: { status: RentalStatus }) {
       <Icon className="h-3 w-3" />
       {config.label}
     </span>
-  );
-}
-
-// Stat card skeleton
-function StatCardSkeleton() {
-  return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
-      <div className="flex items-center gap-3">
-        <Skeleton className="h-12 w-12 rounded-xl" />
-        <div className="flex flex-col flex-1">
-          <Skeleton className="h-3 w-24 rounded" />
-          <Skeleton className="h-6 w-16 rounded mt-1" />
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -215,9 +201,7 @@ export default function RentalRequestsList() {
       {/* Summary Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         {isLoading ? (
-          Array.from({ length: 5 }).map((_, i) => (
-            <StatCardSkeleton key={i} />
-          ))
+          <DashboardSkeleton count={5} columns="md" />
         ) : (
           statCards.map((stat) => {
             const Icon = stat.icon;
