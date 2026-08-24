@@ -12,6 +12,7 @@ import {
   Settings,
   ShoppingCart,
   Menu,
+  Users,
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -47,8 +48,9 @@ const tenantNav: SidebarNavItem[] = [
 
 const adminNav: SidebarNavItem[] = [
   { label: "Overview", href: "/admin-dashboard", icon: LayoutDashboard },
-  { label: "Users", href: "/admin/users", icon: Building2 },
-  { label: "Properties", href: "/properties", icon: Building2 },
+  { label: "Users", href: "/admin-dashboard/users", icon: Users },
+  { label: "Properties", href: "/admin-dashboard/properties", icon: Building2 },
+  { label: "Rental Requests", href: "/admin-dashboard/rentals", icon: FileText },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
