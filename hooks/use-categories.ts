@@ -16,8 +16,7 @@ const fetchCategories = async (): Promise<Category[]> => {
     throw new Error(data.message || "Failed to fetch categories");
   }
 
-  console.log(data.data, "category Data");
-  return data.data;
+   return data.data;
 };
 
 export const useCategories = () => {

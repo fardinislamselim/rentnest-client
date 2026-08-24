@@ -15,6 +15,7 @@ import {
   Calendar,
   Share2,
   Heart,
+  AlertCircle,
 } from "lucide-react";
 
 interface PropertyDetailsPageProps {
@@ -33,30 +34,61 @@ async function getPropertyDetails(id: string) {
   try {
     const res = await api.get(`/properties/${id}`);
     if (res.data?.success && res.data?.data) {
-      return res.data.data;
+      return { data: res.data.data, error: null };
     }
-  } catch (err) {
-    console.warn("Failed to fetch property from backend:", err);
+    return { data: null, error: "Property not found" };
+  } catch {
+    return { data: null, error: "Failed to load property details" };
   }
-  return null;
 }
 
 export default async function PropertyDetailsPage({ params }: PropertyDetailsPageProps) {
   const { id } = await params;
-  const property = await getPropertyDetails(id);
+  const { data: property, error: fetchError } = await getPropertyDetails(id);
 
-  const title = property?.title || "Modern Rental Property";
-  const location = property?.location || "Dhaka, Bangladesh";
-  const rawPrice = property?.price ?? 35000;
-  const price = rawPrice ? `BDT ${rawPrice.toLocaleString()}` : "BDT 35,000";
-  const bedrooms = property?.bedrooms ?? 3;
-  const bathrooms = property?.bathrooms ?? 2;
-  const area = property?.size || property?.area || 1450;
+  if (fetchError || !property) {
+    return (
+      <div className="min-h-screen bg-background py-10 lg:py-16">
+        <Container>
+          <div className="mb-6">
+            <Button asChild variant="ghost" className="gap-2 text-muted-foreground hover:text-foreground">
+              <Link href="/properties">
+                <ArrowLeft className="h-4 w-4" /> Back to Properties
+              </Link>
+            </Button>
+          </div>
+
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 mb-4">
+              <AlertCircle className="h-8 w-8 text-red-500" />
+            </div>
+            <h2 className="font-heading text-2xl font-bold text-foreground mb-2">
+              Property Not Found
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-md mb-6">
+              {fetchError || "The property you're looking for could not be found or has been removed."}
+            </p>
+            <Button asChild className="bg-blue-600 hover:bg-blue-700 rounded-xl">
+              <Link href="/properties">Browse All Properties</Link>
+            </Button>
+          </div>
+        </Container>
+      </div>
+    );
+  }
+
+  const title = property.title;
+  const location = property.location;
+  const rawPrice = property.price;
+  const price = rawPrice ? `BDT ${rawPrice.toLocaleString()}` : "BDT —";
+  const bedrooms = property.bedrooms;
+  const bathrooms = property.bathrooms;
+  const area = property.size || property.area;
   const description =
-    property?.description ||
-    "A well-maintained rental property featuring spacious bedrooms, modern kitchen fittings, 24/7 water and power backup, and close proximity to public transport.";
+    property.description ||
+    "No description available for this property.";
   const image =
-    property?.images?.[0] ||
+    property.images?.[0] ||
     "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80";
 
   return (

@@ -31,8 +31,8 @@ export const getNewAccessToken = async (refreshToken?: string): Promise<{ succes
         data: { accessToken },
       };
     }
-  } catch (error) {
-    console.warn("Refresh token request failed:", error);
+  } catch {
+    return { success: false };
   }
 
   return { success: false };

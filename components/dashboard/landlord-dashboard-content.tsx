@@ -16,6 +16,7 @@ import {
   List,
   ArrowUpRight,
   User,
+  AlertCircle,
 } from "lucide-react";
 import { useLandlordDashboard } from "@/hooks/use-landlord-dashboard";
 import { api } from "@/lib/axios";
@@ -89,6 +90,9 @@ export default function LandlordDashboardContent() {
   const [requestsLoading, setRequestsLoading] = React.useState(true);
   const [propertiesLoading, setPropertiesLoading] = React.useState(true);
 
+  const [requestsError, setRequestsError] = React.useState<string | null>(null);
+  const [propertiesError, setPropertiesError] = React.useState<string | null>(null);
+
   React.useEffect(() => {
     const fetchRecentRequests = async () => {
       try {
@@ -96,8 +100,8 @@ export default function LandlordDashboardContent() {
         if (data.success) {
           setRecentRequests(data.data.slice(0, 5));
         }
-      } catch (err) {
-        console.error("Failed to fetch recent requests:", err);
+      } catch {
+        setRequestsError("Failed to load rental requests");
       } finally {
         setRequestsLoading(false);
       }
@@ -109,8 +113,8 @@ export default function LandlordDashboardContent() {
         if (data.success) {
           setRecentProperties(data.data.slice(0, 5));
         }
-      } catch (err) {
-        console.error("Failed to fetch recent properties:", err);
+      } catch {
+        setPropertiesError("Failed to load properties");
       } finally {
         setPropertiesLoading(false);
       }
@@ -216,6 +220,18 @@ export default function LandlordDashboardContent() {
         <div className="p-6">
           {requestsLoading ? (
             Array.from({ length: 5 }).map((_, i) => <RecentItemSkeleton key={i} />)
+          ) : requestsError ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 mb-4">
+                <AlertCircle className="h-8 w-8 text-red-500" />
+              </div>
+              <h3 className="font-heading text-lg font-semibold text-foreground mb-2">
+                Failed to Load Requests
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-md">
+                {requestsError}
+              </p>
+            </div>
           ) : recentRequests.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/30 mb-4">
@@ -286,6 +302,18 @@ export default function LandlordDashboardContent() {
         <div className="p-6">
           {propertiesLoading ? (
             Array.from({ length: 5 }).map((_, i) => <RecentItemSkeleton key={i} />)
+          ) : propertiesError ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 mb-4">
+                <AlertCircle className="h-8 w-8 text-red-500" />
+              </div>
+              <h3 className="font-heading text-lg font-semibold text-foreground mb-2">
+                Failed to Load Properties
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-md">
+                {propertiesError}
+              </p>
+            </div>
           ) : recentProperties.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/30 mb-4">

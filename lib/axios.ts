@@ -32,26 +32,7 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
-    const status = error.response?.status;
-
-    switch (status) {
-      case 401:
-        // Unauthorized requests are handled by callers like getMe(), so avoid noisy logs.
-        break;
-      case 403:
-        console.error("Forbidden");
-        break;
-      case 404:
-        console.error("Not Found");
-        break;
-      case 500:
-        console.error("Server Error");
-        break;
-      default:
-        break;
-    }
-
+       (error: AxiosError) => {
     return Promise.reject(error);
   },
 );

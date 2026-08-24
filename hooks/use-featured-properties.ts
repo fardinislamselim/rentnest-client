@@ -127,33 +127,34 @@ const MOCK_FEATURED_PROPERTIES: Property[] = [
   },
 ];
 
+function extractPropertyList(rawData: unknown): Property[] {
+  if (!rawData) return [];
+  if (Array.isArray(rawData)) return rawData as Property[];
+  if (typeof rawData === "object") {
+    const obj = rawData as Record<string, unknown>;
+    if ("properties" in obj && Array.isArray(obj.properties)) return obj.properties as Property[];
+    if ("data" in obj && Array.isArray(obj.data)) return obj.data as Property[];
+  }
+  return [];
+}
+
 const fetchFeaturedProperties = async (): Promise<Property[]> => {
   try {
     // 1. Try /properties?isFeatured=true
     const response = await api.get<ApiResponse<PropertiesApiResponseData>>("/properties?isFeatured=true");
     if (response.data?.success && response.data?.data) {
-      const rawData = response.data.data;
-      const list = Array.isArray(rawData)
-        ? rawData
-        : (rawData && typeof rawData === "object" && ("properties" in rawData || "data" in rawData))
-          ? (rawData.properties || rawData.data || [])
-          : [];
+      const list = extractPropertyList(response.data.data);
       if (list.length > 0) return list;
     }
 
     // 2. If featured filter returns empty, fetch general /properties
     const generalResponse = await api.get<ApiResponse<PropertiesApiResponseData>>("/properties");
     if (generalResponse.data?.success && generalResponse.data?.data) {
-      const rawData = generalResponse.data.data;
-      const list = Array.isArray(rawData)
-        ? rawData
-        : (rawData && typeof rawData === "object" && ("properties" in rawData || "data" in rawData))
-          ? (rawData.properties || rawData.data || [])
-          : [];
+      const list = extractPropertyList(generalResponse.data.data);
       if (list.length > 0) return list;
     }
-  } catch (error) {
-    console.warn("API /properties fetch failed, using fallback featured properties.", error);
+  } catch {
+    // Silent fallback — homepage always shows content
   }
 
   return MOCK_FEATURED_PROPERTIES;

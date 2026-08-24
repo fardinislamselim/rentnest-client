@@ -16,7 +16,7 @@ export const useMe = () => {
         if (axios.isAxiosError(error) && error.response?.status === 401) {
           return null;
         }
-        return null;
+        throw new Error("Failed to load user session");
       }
     },
     retry: false,
