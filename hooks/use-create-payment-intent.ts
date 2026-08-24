@@ -29,8 +29,19 @@ export const useCreatePaymentIntent = () => {
       }
 
       const result = data.data as CreatePaymentIntentResult;
+
+      try {
+        localStorage.setItem("payment_redirect", JSON.stringify({
+          paymentId: result.paymentId,
+          rentalRequestId,
+          amount: result.amount,
+          timestamp: Date.now(),
+        }));
+      } catch (storageError) {
+        console.warn("Unable to store payment redirect info:", storageError);
+      }
+
       toast.success("Redirecting to payment gateway...");
-      // Redirect to Stripe Checkout
       window.location.href = result.checkoutUrl;
       return result;
     } catch (error) {
