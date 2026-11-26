@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import RequestTableSkeleton from "@/components/admin/request-table-skeleton";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { CheckCircle, CheckCircle2, XCircle, Clock, Eye } from "lucide-react";
 import Link from "next/link";
 import {
@@ -129,18 +130,11 @@ export default function RentalRequestsTable() {
 
   if (!requests || requests.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gray-500/10 mb-6">
-          <Clock className="h-10 w-10 text-gray-500 dark:text-gray-400" />
-        </div>
-        <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-          No rental requests yet
-        </h3>
-        <p className="text-sm text-muted-foreground max-w-md">
-          Rental requests from tenants will appear here when they apply for your
-          properties.
-        </p>
-      </div>
+      <EmptyState
+        icon={Clock}
+        title="No rental requests yet"
+        description="Rental requests from tenants will appear here when they apply for your properties."
+      />
     );
   }
 

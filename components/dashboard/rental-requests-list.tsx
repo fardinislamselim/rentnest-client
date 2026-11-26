@@ -21,6 +21,7 @@ import { useCreatePaymentIntent } from "@/hooks/use-create-payment-intent";
 import { RentalStatus } from "@/types/rental";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState as SharedEmptyState } from "@/components/shared/EmptyState";
 import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
 
 // Color mapping for rental status badges
@@ -120,24 +121,13 @@ function TableRowSkeleton() {
 // Empty state
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-muted/30 mb-6">
-        <FileText className="h-10 w-10 text-muted-foreground" />
-      </div>
-      <h3 className="font-heading text-xl font-bold text-foreground mb-2">
-        No rental requests found
-      </h3>
-      <p className="text-sm text-muted-foreground max-w-md mb-6">
-        You haven&apos;t submitted any rental requests yet. Browse properties and
-        submit your first request!
-      </p>
-      <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl gap-2">
-        <Link href="/properties" className="flex items-center gap-2">
-          <FileText className="h-4 w-4" />
-          Browse Properties
-        </Link>
-      </Button>
-    </div>
+    <SharedEmptyState
+      icon={FileText}
+      title="No rental requests found"
+      description="You haven't submitted any rental requests yet. Browse properties and submit your first request!"
+      actionLabel="Browse Properties"
+      actionHref="/properties"
+    />
   );
 }
 

@@ -3,6 +3,7 @@
 import React from "react";
 import { FileText, CreditCard, Calendar, Hash, Building2 } from "lucide-react";
 import { useMyPayments } from "@/hooks/use-my-payments";
+import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
@@ -263,24 +264,14 @@ export default function PaymentHistoryClient() {
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-muted/30 mb-6">
-              <FileText className="h-10 w-10 text-muted-foreground" />
-            </div>
-            <h3 className="font-heading text-xl font-bold text-foreground mb-2">
-              No payment history found
-            </h3>
-            <p className="text-sm text-muted-foreground max-w-md mb-6">
-              You haven&apos;t made any payments yet. Approved rental requests
-              will appear here once you complete the payment.
-            </p>
-            <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl gap-2">
-              <Link href="/dashboard/rental-requests" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                View Rental Requests
-              </Link>
-            </Button>
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="No payment history found"
+            description="You haven't made any payments yet. Approved rental requests will appear here once you complete the payment."
+            actionLabel="View Rental Requests"
+            actionHref="/dashboard/rental-requests"
+            className="border-0 bg-transparent"
+          />
         )}
       </div>
     </div>

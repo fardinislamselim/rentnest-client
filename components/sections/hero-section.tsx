@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import Container from "@/components/layout/container";
 import { useCategories } from "@/hooks/use-categories";
 import { Button } from "@/components/ui/button";
+import { buildQueryString } from "@/lib/queryParams";
 
 export default function HeroSection() {
   const router = useRouter();
@@ -20,12 +21,30 @@ export default function HeroSection() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const params = new URLSearchParams();
-    if (location) params.append("location", location);
-    if (propertyType) params.append("type", propertyType);
-    if (budget) params.append("budget", budget);
 
-    router.push(`/properties?${params.toString()}`);
+    let minPrice: number | undefined;
+    let maxPrice: number | undefined;
+    if (budget === "0-15000") {
+      minPrice = 0;
+      maxPrice = 15000;
+    } else if (budget === "15000-30000") {
+      minPrice = 15000;
+      maxPrice = 30000;
+    } else if (budget === "30000-50000") {
+      minPrice = 30000;
+      maxPrice = 50000;
+    } else if (budget === "50000+") {
+      minPrice = 50000;
+    }
+
+    const qs = buildQueryString({
+      location: location || undefined,
+      categoryId: propertyType || undefined,
+      minPrice,
+      maxPrice,
+    });
+
+    router.push(qs ? `/properties?${qs}` : "/properties");
   };
 
   return (
@@ -156,20 +175,11 @@ export default function HeroSection() {
                       </option>
                       {categories && categories.length > 0 ? (
                         categories.map((cat) => (
-                          <option key={cat.id} value={cat.name} className="bg-background">
+                          <option key={cat.id} value={cat.id} className="bg-background">
                             {cat.name}
                           </option>
                         ))
-                      ) : (
-                        <>
-                          <option value="Apartment" className="bg-background">Apartment</option>
-                          <option value="Villa" className="bg-background">Villa</option>
-                          <option value="Studio" className="bg-background">Studio</option>
-                          <option value="Office" className="bg-background">Office</option>
-                          <option value="Duplex" className="bg-background">Duplex</option>
-                          <option value="Family House" className="bg-background">Family House</option>
-                        </>
-                      )}
+                      ) : null}
                     </select>
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none border-l border-r border-t border-transparent border-t-muted-foreground border-4 mt-0.5" />
                   </div>

@@ -11,6 +11,7 @@ interface EmptyStateProps {
   description: string;
   actionLabel?: string;
   actionHref?: string;
+  onAction?: () => void;
   action?: React.ReactNode;
   className?: string;
 }
@@ -21,9 +22,36 @@ export function EmptyState({
   description,
   actionLabel,
   actionHref,
+  onAction,
   action,
   className,
 }: EmptyStateProps) {
+  const renderAction = () => {
+    if (action) return action;
+    if (actionLabel && actionHref) {
+      return (
+        <Button
+          asChild
+          className="rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+        >
+          <Link href={actionHref}>{actionLabel}</Link>
+        </Button>
+      );
+    }
+    if (actionLabel && onAction) {
+      return (
+        <Button
+          type="button"
+          onClick={onAction}
+          className="cursor-pointer rounded-xl bg-blue-600 text-white hover:bg-blue-700"
+        >
+          {actionLabel}
+        </Button>
+      );
+    }
+    return null;
+  };
+
   return (
     <div
       className={cn(
@@ -40,15 +68,7 @@ export function EmptyState({
       <p className="mb-6 max-w-md text-sm text-muted-foreground">
         {description}
       </p>
-      {action ??
-        (actionLabel && actionHref ? (
-          <Button
-            asChild
-            className="rounded-xl bg-blue-600 text-white hover:bg-blue-700"
-          >
-            <Link href={actionHref}>{actionLabel}</Link>
-          </Button>
-        ) : null)}
+      {renderAction()}
     </div>
   );
 }
