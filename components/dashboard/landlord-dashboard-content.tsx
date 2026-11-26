@@ -1,31 +1,37 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import Link from "next/link";
 import {
+  AlertCircle,
+  ArrowUpRight,
   Building2,
-  Home,
-  XCircle,
-  Clock,
   CheckCircle,
+  ChevronRight,
+  Clock,
   DollarSign,
   FileText,
-  PlusCircle,
+  Home,
   List,
-  ArrowUpRight,
-  User,
-  AlertCircle,
+  PlusCircle,
+  Settings,
+  ShieldCheck,
+  User as UserIcon,
+  XCircle,
 } from "lucide-react";
+
+import { StatCard } from "@/components/dashboard/StatCard";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { DashboardStatsSkeleton } from "@/components/shared/Skeletons";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useLandlordDashboard } from "@/hooks/use-landlord-dashboard";
 import { api } from "@/lib/axios";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
-import { RentalStatus } from "@/types/rental";
-import type { RentalRequest } from "@/types/rental";
 import type { Property } from "@/types/property";
+import type { RentalRequest, RentalStatus } from "@/types/rental";
+import type { User } from "@/types/user";
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("en-BD", {
@@ -68,30 +74,54 @@ const STATUS_CONFIG: Record<
     icon: CheckCircle,
     label: "Completed",
   },
-  };
+};
 
-function RecentItemSkeleton() {
-  return (
-    <div className="flex items-center gap-4 py-4 border-b border-border/30 last:border-0">
-      <Skeleton className="h-12 w-12 rounded-xl" />
-      <div className="flex-1 space-y-2">
-        <Skeleton className="h-4 w-3/4 rounded" />
-        <Skeleton className="h-3 w-1/2 rounded" />
-      </div>
-      <Skeleton className="h-6 w-20 rounded-full" />
-    </div>
-  );
-}
+const QUICK_ACTIONS = [
+  {
+    href: "/landlord-dashboard/create-property",
+    label: "Post New Property",
+    description: "Publish a new rental listing",
+    icon: PlusCircle,
+    accent: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  },
+  {
+    href: "/landlord-dashboard/my-properties",
+    label: "Manage Properties",
+    description: "Edit photos, pricing & availability",
+    icon: List,
+    accent: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  },
+  {
+    href: "/landlord-dashboard/requests",
+    label: "Review Requests",
+    description: "Approve, reject or complete stays",
+    icon: FileText,
+    accent: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  },
+  {
+    href: "/settings",
+    label: "Account & Security Settings",
+    description: "Update profile photo and password",
+    icon: Settings,
+    accent: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+  },
+];
 
-export default function LandlordDashboardContent() {
+export default function LandlordDashboardContent({
+  user,
+}: {
+  user?: User | null;
+}) {
   const { data: stats, isLoading: statsLoading } = useLandlordDashboard();
-  const [recentRequests, setRecentRequests] = React.useState<RentalRequest[]>([]);
-  const [recentProperties, setRecentProperties] = React.useState<Property[]>([]);
+  const [recentRequests, setRecentRequests] = React.useState<RentalRequest[]>(
+    [],
+  );
+  const [recentProperties, setRecentProperties] = React.useState<Property[]>(
+    [],
+  );
   const [requestsLoading, setRequestsLoading] = React.useState(true);
   const [propertiesLoading, setPropertiesLoading] = React.useState(true);
-
   const [requestsError, setRequestsError] = React.useState<string | null>(null);
-  const [propertiesError, setPropertiesError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const fetchRecentRequests = async () => {
@@ -111,279 +141,299 @@ export default function LandlordDashboardContent() {
       try {
         const { data } = await api.get("/properties/my-properties");
         if (data.success) {
-          setRecentProperties(data.data.slice(0, 5));
+          setRecentProperties(data.data.slice(0, 4));
         }
-      } catch {
-        setPropertiesError("Failed to load properties");
       } finally {
         setPropertiesLoading(false);
       }
     };
 
-    fetchRecentRequests();
-    fetchRecentProperties();
+    void fetchRecentRequests();
+    void fetchRecentProperties();
   }, []);
 
-  const statCards = [
-    {
-      label: "Total Properties",
-      value: stats?.totalProperties ?? 0,
-      icon: Building2,
-      color: "bg-blue-500/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400",
-    },
-    {
-      label: "Available Properties",
-      value: stats?.available ?? 0,
-      icon: Home,
-      color: "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400",
-    },
-    {
-      label: "Unavailable Properties",
-      value: stats?.rented ?? 0,
-      icon: XCircle,
-      color: "bg-red-500/10 text-red-600 dark:bg-red-400/10 dark:text-red-400",
-    },
-    {
-      label: "Pending Requests",
-      value: stats?.pendingRequests ?? 0,
-      icon: Clock,
-      color: "bg-amber-500/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400",
-    },
-    {
-      label: "Approved Requests",
-      value: stats?.approvedRentals ?? 0,
-      icon: CheckCircle,
-      color: "bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-400",
-    },
-    {
-      label: "Total Earnings",
-      value: stats?.totalIncome ?? 0,
-      icon: DollarSign,
-      color: "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400",
-      isCurrency: true,
-    },
-  ];
-
   return (
-    <div className="flex flex-col gap-8">
-      {/* Summary Stats Cards */}
+    <div className="flex flex-col gap-6">
+      {/* 4-Card Primary KPI Row */}
       {statsLoading ? (
-        <DashboardSkeleton count={6} columns="lg" />
+        <DashboardStatsSkeleton count={4} columns="lg" />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {statCards.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: statCards.indexOf(stat) * 0.08 }}
-                className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-6 shadow-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.color}`}
-                  >
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-semibold uppercase text-muted-foreground">
-                      {stat.label}
-                    </span>
-                    <span className="font-heading text-2xl font-bold text-foreground">
-                      {stat.isCurrency
-                        ? formatCurrency(stat.value)
-                        : stat.value}
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            label="Total Properties"
+            value={stats?.totalProperties ?? 0}
+            subtitle="Published listings"
+            href="/landlord-dashboard/my-properties"
+            icon={Building2}
+            accentClass="bg-blue-500/10 text-blue-600 dark:text-blue-400"
+          />
+          <StatCard
+            label="Available Listings"
+            value={stats?.available ?? 0}
+            subtitle="Open for booking"
+            href="/landlord-dashboard/my-properties"
+            icon={Home}
+            accentClass="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+          />
+          <StatCard
+            label="Pending Requests"
+            value={stats?.pendingRequests ?? 0}
+            subtitle="Awaiting your decision"
+            href="/landlord-dashboard/requests"
+            icon={Clock}
+            accentClass="bg-amber-500/10 text-amber-600 dark:text-amber-400"
+          />
+          <StatCard
+            label="Total Earnings"
+            value={formatCurrency(stats?.totalIncome ?? 0)}
+            subtitle="Completed rental income"
+            href="/dashboard/payment-history"
+            icon={DollarSign}
+            accentClass="bg-purple-500/10 text-purple-600 dark:text-purple-400"
+          />
         </div>
       )}
 
-      {/* Recent Rental Requests */}
-      <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
-        <div className="border-b border-border/40 px-6 py-4 flex items-center justify-between">
-          <h2 className="font-heading text-xl font-bold text-foreground flex items-center gap-2">
-            <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            Recent Rental Requests
-          </h2>
-          <Button asChild variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-            <Link href="/landlord-dashboard/requests" className="flex items-center gap-1">
-              View All <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-          </Button>
-        </div>
-        <div className="p-6">
-          {requestsLoading ? (
-            Array.from({ length: 5 }).map((_, i) => <RecentItemSkeleton key={i} />)
-          ) : requestsError ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 mb-4">
-                <AlertCircle className="h-8 w-8 text-red-500" />
-              </div>
-              <h3 className="font-heading text-lg font-semibold text-foreground mb-2">
-                Failed to Load Requests
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-md">
-                {requestsError}
-              </p>
-            </div>
-          ) : recentRequests.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/30 mb-4">
-                <FileText className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h3 className="font-heading text-lg font-semibold text-foreground mb-2">
-                No rental requests yet
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-md">
-                Rental requests from tenants will appear here.
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border/40">
-              {recentRequests.map((request) => {
-                const statusConfig =
-                  STATUS_CONFIG[request.status as RentalStatus] ||
-                  STATUS_CONFIG.PENDING;
-                const StatusIcon = statusConfig.icon;
-                const tenantName =
-                  request.tenant?.name || "Unknown Tenant";
-                const propertyTitle =
-                  request.property?.title || "Unknown Property";
-
-                return (
-                  <div
-                    key={request.id}
-                    className="flex items-center gap-4 py-4 first:pt-0 last:pb-0"
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
-                      <User className="h-5 w-5" />
+      {/* Main Content Hierarchy */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Left: Recent Requests & Properties */}
+        <div className="flex flex-col gap-6 lg:col-span-2">
+          <Card className="border-border/60 bg-card">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileText
+                  className="h-5 w-5 text-blue-600 dark:text-blue-400"
+                  aria-hidden="true"
+                />
+                Recent Rental Requests
+              </CardTitle>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
+              >
+                <Link
+                  href="/landlord-dashboard/requests"
+                  className="flex items-center gap-1"
+                >
+                  View all
+                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {requestsLoading ? (
+                <div className="divide-y divide-border/40">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 py-3.5">
+                      <Skeleton className="h-10 w-10 rounded-xl" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-2/3 rounded" />
+                        <Skeleton className="h-3 w-1/2 rounded" />
+                      </div>
+                      <Skeleton className="h-6 w-20 rounded-full" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-foreground line-clamp-1">
-                        {tenantName}
-                      </h4>
-                      <p className="text-sm text-muted-foreground line-clamp-1">
-                        {propertyTitle}
+                  ))}
+                </div>
+              ) : requestsError ? (
+                <EmptyState
+                  icon={AlertCircle}
+                  title="Could not load requests"
+                  description={requestsError}
+                  className="border-0 bg-transparent py-8"
+                />
+              ) : recentRequests.length === 0 ? (
+                <EmptyState
+                  icon={FileText}
+                  title="No rental requests yet"
+                  description="Incoming tenant applications will appear here."
+                  className="border-0 bg-transparent py-8"
+                />
+              ) : (
+                <div className="divide-y divide-border/40">
+                  {recentRequests.map((request) => {
+                    const statusConfig =
+                      STATUS_CONFIG[request.status as RentalStatus] ||
+                      STATUS_CONFIG.PENDING;
+                    const StatusIcon = statusConfig.icon;
+                    return (
+                      <div
+                        key={request.id}
+                        className="flex items-center gap-4 py-3.5 first:pt-0 last:pb-0"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                          <UserIcon className="h-5 w-5" aria-hidden="true" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="line-clamp-1 font-semibold text-foreground">
+                            {request.tenant?.name || "Unknown Tenant"}
+                          </h4>
+                          <p className="line-clamp-1 text-xs text-muted-foreground">
+                            {request.property?.title || "Unknown Property"}
+                          </p>
+                        </div>
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${statusConfig.bgColor} ${statusConfig.color}`}
+                        >
+                          <StatusIcon className="h-3 w-3" aria-hidden="true" />
+                          {statusConfig.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/60 bg-card">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-border/40 pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Building2
+                  className="h-5 w-5 text-blue-600 dark:text-blue-400"
+                  aria-hidden="true"
+                />
+                Recent Properties
+              </CardTitle>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
+              >
+                <Link
+                  href="/landlord-dashboard/my-properties"
+                  className="flex items-center gap-1"
+                >
+                  View all
+                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {propertiesLoading ? (
+                <div className="divide-y divide-border/40">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4 py-3.5">
+                      <Skeleton className="h-12 w-16 rounded-xl" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-2/3 rounded" />
+                        <Skeleton className="h-3 w-1/2 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : recentProperties.length === 0 ? (
+                <EmptyState
+                  icon={Building2}
+                  title="No properties yet"
+                  description="Create your first listing to start receiving rental requests."
+                  actionLabel="Post New Property"
+                  actionHref="/landlord-dashboard/create-property"
+                  className="border-0 bg-transparent py-8"
+                />
+              ) : (
+                <div className="divide-y divide-border/40">
+                  {recentProperties.map((property) => (
+                    <Link
+                      key={property.id}
+                      href={`/landlord-dashboard/edit-property/${property.id}`}
+                      className="flex items-center gap-4 rounded-xl py-3 transition-colors hover:bg-muted/30 first:pt-0 last:pb-0"
+                    >
+                      <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
+                        <Image
+                          src={
+                            property.primaryImage ||
+                            property.images?.[0] ||
+                            "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=200&q=80"
+                          }
+                          alt={property.title}
+                          fill
+                          sizes="64px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="line-clamp-1 font-semibold text-foreground">
+                          {property.title}
+                        </h4>
+                        <p className="line-clamp-1 text-xs text-muted-foreground">
+                          {property.location}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-sm font-semibold text-foreground">
+                        {formatCurrency(property.price)}/mo
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right: Quick Actions & Account Summary */}
+        <div className="flex flex-col gap-5">
+          <Card className="border-border/60 bg-card">
+            <CardHeader className="border-b border-border/40 pb-4">
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="divide-y divide-border/40 pt-2">
+              {QUICK_ACTIONS.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="group flex items-center gap-3.5 py-3.5 transition-colors first:pt-2 last:pb-1"
+                  >
+                    <div
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.accent}`}
+                    >
+                      <Icon className="h-4 w-4" aria-hidden="true" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                        {item.label}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {item.description}
                       </p>
                     </div>
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${statusConfig.bgColor} ${statusConfig.color}`}
-                    >
-                      <StatusIcon className="h-3 w-3" />
-                      {statusConfig.label}
-                    </span>
-                  </div>
+                    <ChevronRight
+                      className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                  </Link>
                 );
               })}
-            </div>
-          )}
-        </div>
-      </div>
+            </CardContent>
+          </Card>
 
-      {/* Recent Properties */}
-      <div className="rounded-2xl border border-border/60 bg-card shadow-sm overflow-hidden">
-        <div className="border-b border-border/40 px-6 py-4 flex items-center justify-between">
-          <h2 className="font-heading text-xl font-bold text-foreground flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            Recent Properties
-          </h2>
-          <Button asChild variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-            <Link href="/landlord-dashboard/my-properties" className="flex items-center gap-1">
-              View All <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-          </Button>
-        </div>
-        <div className="p-6">
-          {propertiesLoading ? (
-            Array.from({ length: 5 }).map((_, i) => <RecentItemSkeleton key={i} />)
-          ) : propertiesError ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 mb-4">
-                <AlertCircle className="h-8 w-8 text-red-500" />
-              </div>
-              <h3 className="font-heading text-lg font-semibold text-foreground mb-2">
-                Failed to Load Properties
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-md">
-                {propertiesError}
-              </p>
-            </div>
-          ) : recentProperties.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/30 mb-4">
-                <Building2 className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h3 className="font-heading text-lg font-semibold text-foreground mb-2">
-                No properties yet
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-md">
-                Start by posting your first property listing.
-              </p>
-            </div>
-          ) : (
-            <div className="divide-y divide-border/40">
-              {recentProperties.map((property) => (
-                <div
-                  key={property.id}
-                  className="flex items-center gap-4 py-4 first:pt-0 last:pb-0"
-                >
-                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-muted">
-                    <Image
-                      src={property.images?.[0] || "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=200&q=80"}
-                      alt={property.title}
-                      fill
-                      sizes="48px"
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-foreground line-clamp-1">
-                      {property.title}
-                    </h4>
-                    <p className="text-sm text-muted-foreground line-clamp-1">
-                      {property.location}
-                    </p>
-                  </div>
-                  <span className="text-sm font-medium text-foreground">
-                    {formatCurrency(property.price)}/mo
-                  </span>
+          <Card className="border-border/60 bg-card">
+            <CardContent className="flex items-center justify-between gap-3 p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                  <ShieldCheck className="h-5 w-5" aria-hidden="true" />
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
-        <h2 className="font-heading text-xl font-bold text-foreground">
-          Quick Actions
-        </h2>
-        <div className="flex flex-wrap gap-4">
-          <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl gap-2 cursor-pointer">
-            <Link href="/landlord-dashboard/create-property" className="flex items-center gap-2">
-              <PlusCircle className="h-4 w-4" />
-              Post New Property
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="rounded-xl gap-2 cursor-pointer">
-               <Link href="/landlord-dashboard/my-properties" className="flex items-center gap-2">
-              <List className="h-4 w-4" />
-              Manage Properties
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="rounded-xl gap-2 cursor-pointer">
-            <Link href="/landlord-dashboard/requests" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Review Requests
-            </Link>
-          </Button>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Account Status
+                  </p>
+                  <p className="text-sm font-bold text-foreground">
+                    {user?.role ?? "LANDLORD"} • {user?.status ?? "ACTIVE"}
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/settings"
+                className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400"
+              >
+                Manage
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
