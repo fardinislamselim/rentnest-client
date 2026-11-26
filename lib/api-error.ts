@@ -1,16 +1,4 @@
-/**
- * Turns anything that was thrown into copy that is safe to show a user.
- *
- * Nothing returned from this module originates from the server, an exception
- * message, or a stack trace. Messages are chosen locally from the HTTP status,
- * which keeps `AxiosError: Request failed with status code 500` strings, Prisma
- * and Zod internals, and raw 500-page HTML out of the UI — and keeps the wording
- * consistent across every flow in the app.
- *
- * Callers that need sharper copy for one specific status (for example, 401 on a
- * change-password form means "wrong current password", not "session expired")
- * pass a `byStatus` override rather than reaching for the server's message.
- */
+import type { IApiErrorResponse, IApiErrorSource } from "@/types/api";
 
 export const NETWORK_ERROR_MESSAGE =
   "We couldn't reach the server. Check your connection and try again.";
@@ -43,19 +31,23 @@ export const messageForStatus = (status: number): string => {
 };
 
 /**
- * A failed API call, carrying only the status code.
- *
- * The `message` is deliberately the user-facing copy for that status, never the
- * server's. That way even an accidental `{error.message}` render somewhere in
- * the tree shows something safe instead of leaking backend internals.
+ * A failed API call, carrying status code and optional backend error details.
  */
 export class ApiRequestError extends Error {
   readonly status: number;
+  readonly errorSources?: IApiErrorSource[];
+  readonly serverMessage?: string;
 
-  constructor(status: number) {
-    super(messageForStatus(status));
+  constructor(
+    status: number,
+    serverMessage?: string,
+    errorSources?: IApiErrorSource[],
+  ) {
+    super(serverMessage || messageForStatus(status));
     this.name = "ApiRequestError";
     this.status = status;
+    this.serverMessage = serverMessage;
+    this.errorSources = errorSources;
   }
 }
 
@@ -103,4 +95,54 @@ export const friendlyError = (
   if (isNetworkFailure(error)) return NETWORK_ERROR_MESSAGE;
 
   return options.fallback ?? DEFAULT_MESSAGE;
+};
+
+const formatErrorSources = (sources?: IApiErrorSource[]): string | null => {
+  if (!Array.isArray(sources) || sources.length === 0) return null;
+  const formatted = sources
+    .map((s) => (s.path ? `${s.path}: ${s.message}` : s.message))
+    .filter(Boolean);
+  return formatted.length > 0 ? formatted.join(", ") : null;
+};
+
+/**
+ * Centralized API error parser that handles `IApiErrorResponse` (`errorSources`
+ * and `message`), `ApiRequestError`, Axios errors, and generic `Error` objects.
+ */
+export const extractApiErrorMessage = (
+  error: unknown,
+  fallback: string = DEFAULT_MESSAGE,
+): string => {
+  if (error instanceof ApiRequestError) {
+    const fromSources = formatErrorSources(error.errorSources);
+    if (fromSources) return fromSources;
+    if (error.serverMessage) return error.serverMessage;
+    return messageForStatus(error.status);
+  }
+
+  if (typeof error === "object" && error !== null) {
+    const responseData = (
+      error as { response?: { data?: Partial<IApiErrorResponse> } }
+    ).response?.data;
+
+    if (responseData) {
+      const fromSources = formatErrorSources(responseData.errorSources);
+      if (fromSources) return fromSources;
+      if (typeof responseData.message === "string" && responseData.message.trim()) {
+        return responseData.message;
+      }
+    }
+
+    const directData = error as Partial<IApiErrorResponse>;
+    const directSources = formatErrorSources(directData.errorSources);
+    if (directSources) return directSources;
+  }
+
+  if (isNetworkFailure(error)) return NETWORK_ERROR_MESSAGE;
+
+  if (error instanceof Error && error.message && !error.message.startsWith("Request failed with status code")) {
+    return error.message;
+  }
+
+  return friendlyError(error, { fallback });
 };

@@ -1,5 +1,9 @@
 import { notFound } from "next/navigation";
+
 import EditPropertyForm from "@/components/dashboard/edit-property-form";
+import { api, unwrapApiResponse } from "@/lib/axios";
+import type { IApiResponse } from "@/types/api";
+import type { IProperty } from "@/types/property";
 
 export const metadata: import("next").Metadata = {
   title: "Edit Property | RentNest Landlord Dashboard",
@@ -17,5 +21,19 @@ export default async function EditPropertyPage({
     notFound();
   }
 
-  return <EditPropertyForm propertyId={id} />;
+  let initialProperty: IProperty | undefined;
+  try {
+    initialProperty = await unwrapApiResponse(
+      api.get<IApiResponse<IProperty>>(`/properties/${id}`),
+    );
+  } catch {
+    initialProperty = undefined;
+  }
+
+  return (
+    <EditPropertyForm
+      propertyId={id}
+      initialProperty={initialProperty}
+    />
+  );
 }

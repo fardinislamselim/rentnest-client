@@ -1,4 +1,5 @@
 export type RentalStatus = "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE" | "COMPLETED";
+export type IRentalStatus = RentalStatus;
 
 export interface RentalProperty {
   id: string;
@@ -46,3 +47,5 @@ export interface RentalRequest {
   landlord?: RentalLandlord;
   payment?: RentalPayment | null;
 }
+
+export type IRentalRequest = RentalRequest;

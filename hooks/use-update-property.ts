@@ -1,8 +1,12 @@
 import { useState } from "react";
-import { api } from "@/lib/axios";
-import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Property } from "@/types/property";
+import { toast } from "sonner";
+
+import { extractApiErrorMessage } from "@/lib/api-error";
+import { api, unwrapApiResponse } from "@/lib/axios";
+import { buildPropertyFormData } from "@/lib/property-form-data";
+import type { IApiResponse } from "@/types/api";
+import type { IProperty, PropertyStatus } from "@/types/property";
 
 export interface UpdatePropertyPayload {
   title?: string;
@@ -13,71 +17,39 @@ export interface UpdatePropertyPayload {
   bathrooms?: number;
   size?: number;
   images?: string[];
-  status?: "AVAILABLE" | "RENTED" | "UNAVAILABLE";
+  status?: PropertyStatus;
   categoryId?: string;
+  primaryImageFile?: File | null;
+  imageFiles?: File[];
 }
 
 export const useUpdateProperty = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
-  const uploadImageToImgbb = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append("key", "7e7269e8b8a3e722e21a7b9b5781490a");
-    formData.append("image", file);
-
-    const response = await fetch("https://api.imgbb.com/1/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.error?.message || "Failed to upload image");
-    }
-
-    return result.data.url;
-  };
-
   const updateProperty = async (
     propertyId: string,
     payload: UpdatePropertyPayload,
-    imageFiles?: File[]
-  ): Promise<Property | null> => {
+  ): Promise<IProperty | null> => {
     setIsSubmitting(true);
     try {
-      let images = [...(payload.images || [])];
-
-      if (imageFiles && imageFiles.length > 0) {
-        const uploadPromises = imageFiles.map((file) => uploadImageToImgbb(file));
-        const uploadedUrls = await Promise.all(uploadPromises);
-        images = [...images, ...uploadedUrls];
-      }
-
-      const { data } = await api.patch(`/properties/${propertyId}`, {
-        ...payload,
-        images,
-      });
-
-      if (!data.success) {
-        throw new Error(data.message || "Failed to update property");
-      }
+      const formData = buildPropertyFormData(payload);
+      const updated = await unwrapApiResponse(
+        api.patch<IApiResponse<IProperty>>(
+          `/properties/${propertyId}`,
+          formData,
+        ),
+        "Failed to update property",
+      );
 
       toast.success("Property updated successfully!");
-
       queryClient.invalidateQueries({ queryKey: ["my-properties"] });
       queryClient.invalidateQueries({ queryKey: ["landlord-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["property", propertyId] });
 
-      return data.data;
+      return updated;
     } catch (error) {
-      const axiosError = error as { response?: { data?: { message?: string } }; message?: string };
-      const message =
-        axiosError?.response?.data?.message ||
-        axiosError?.message ||
-        "Failed to update property";
-      toast.error(message);
+      toast.error(extractApiErrorMessage(error, "Failed to update property"));
       return null;
     } finally {
       setIsSubmitting(false);

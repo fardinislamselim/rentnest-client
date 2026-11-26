@@ -1,22 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/axios";
-import { ApiResponse } from "@/types/api";
-import { Property } from "@/types/property";
+import { api, unwrapApiResponse } from "@/lib/axios";
+import type { IApiResponse } from "@/types/api";
+import type { IProperty } from "@/types/property";
 
-const fetchProperty = async (propertyId: string): Promise<Property> => {
-  const { data } = await api.get<ApiResponse<Property>>(
-    `/properties/${propertyId}`
+const fetchProperty = async (propertyId: string): Promise<IProperty> => {
+  return unwrapApiResponse(
+    api.get<IApiResponse<IProperty>>(`/properties/${propertyId}`),
+    "Failed to fetch property",
   );
-  if (!data.success) {
-    throw new Error(data.message || "Failed to fetch property");
-  }
-  return data.data;
 };
 
-export const useProperty = (propertyId: string) => {
-  return useQuery<Property, Error>({
+export const useProperty = (
+  propertyId: string,
+  initialData?: IProperty,
+) => {
+  return useQuery<IProperty, Error>({
     queryKey: ["property", propertyId],
     queryFn: () => fetchProperty(propertyId),
+    initialData,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
     retry: 2,

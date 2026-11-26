@@ -1,49 +1,47 @@
 import { ApiRequestError } from "@/lib/api-error";
+import type { IApiErrorSource, IApiResponse } from "@/types/api";
 
 /**
  * Fetcher for the current user's account mutations, routed through
  * `app/api/account/[...path]` so the bearer token is attached server-side.
- *
- * Failures are raised as `ApiRequestError`, which carries only the status code —
- * the backend's own message is intentionally dropped here so it can never reach
- * a toast or the DOM. Call sites turn the status into copy with `friendlyError`.
  */
-
-interface Envelope<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
 
 /** Sentinel status for "the request never landed" (offline, DNS, CORS). */
 const NETWORK_STATUS = 0;
 
 const patch = async <T>(path: string, body: unknown): Promise<T> => {
+  const isFormData = body instanceof FormData;
   let response: Response;
 
   try {
     response = await fetch(`/api/account/${path}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      headers: isFormData ? undefined : { "Content-Type": "application/json" },
+      body: isFormData ? body : JSON.stringify(body),
     });
   } catch {
     throw new ApiRequestError(NETWORK_STATUS);
   }
 
-  let payload: Envelope<T> | null = null;
+  let payload: (Partial<IApiResponse<T>> & { errorSources?: IApiErrorSource[] }) | null = null;
 
   try {
-    payload = (await response.json()) as Envelope<T>;
+    payload = (await response.json()) as Partial<IApiResponse<T>> & {
+      errorSources?: IApiErrorSource[];
+    };
   } catch {
     payload = null;
   }
 
   if (!response.ok || !payload?.success) {
-    throw new ApiRequestError(response.status);
+    throw new ApiRequestError(
+      response.status,
+      payload?.message,
+      payload?.errorSources,
+    );
   }
 
-  return payload.data;
+  return payload.data as T;
 };
 
 export const accountApi = { patch };
