@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Menu, Search, UserCircle } from "lucide-react";
+import { LogOut, Menu, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
@@ -35,7 +35,6 @@ const navLinks = [
 
 export function Navbar({ user, variant = "public" }: NavbarProps) {
   const pathname = usePathname();
-  const [searchOpen, setSearchOpen] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const { data: clientUser } = useMe();
   const currentUser = user ?? clientUser;
@@ -83,32 +82,6 @@ export function Navbar({ user, variant = "public" }: NavbarProps) {
         )}
 
         <div className="hidden items-center gap-4 md:flex">
-          {!isDashboard && (
-            <div className="relative flex items-center">
-              <div
-                className={cn(
-                  "flex items-center rounded-full border border-border/60 bg-muted/40 px-3 py-1 transition-all duration-300",
-                  searchOpen
-                    ? "w-48 bg-background ring-2 ring-blue-500/10 lg:w-64"
-                    : "w-10 cursor-pointer overflow-hidden",
-                )}
-                onClick={() => !searchOpen && setSearchOpen(true)}
-              >
-                <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search properties..."
-                  className={cn(
-                    "w-full border-0 bg-transparent pl-2 text-xs outline-none placeholder:text-muted-foreground",
-                    !searchOpen && "pointer-events-none opacity-0",
-                  )}
-                  onBlur={() => setSearchOpen(false)}
-                  autoFocus={searchOpen}
-                />
-              </div>
-            </div>
-          )}
-
           <ThemeToggle />
 
           {currentUser ? (

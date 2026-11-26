@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { QueryProvider, SonnerProvider, ThemeProvider } from "@/providers";
+import {
+  QueryProvider,
+  SonnerProvider,
+  ThemeProvider,
+  WishlistProvider,
+} from "@/providers";
 
 const manropeHeading = Manrope({
   subsets: ["latin"],
@@ -36,8 +41,10 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <QueryProvider>
-            {children}
-            <SonnerProvider />
+            <WishlistProvider>
+              {children}
+              <SonnerProvider />
+            </WishlistProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>

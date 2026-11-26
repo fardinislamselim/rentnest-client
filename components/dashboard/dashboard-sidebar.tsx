@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Building2,
   FileText,
+  Heart,
   Home,
   LayoutDashboard,
   LogOut,
@@ -42,6 +43,7 @@ const landlordNav: SidebarNavItem[] = [
 const tenantNav: SidebarNavItem[] = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { label: "My Rentals", href: "/dashboard/rental-requests", icon: ShoppingCart },
+  { label: "Saved Properties", href: "/dashboard/wishlist", icon: Heart },
   { label: "Payment History", href: "/dashboard/payment-history", icon: Wallet },
   { label: "Settings", href: "/settings", icon: Settings },
 ];

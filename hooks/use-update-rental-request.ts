@@ -1,76 +1,66 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/axios";
 import { toast } from "sonner";
+
+import { extractApiErrorMessage } from "@/lib/api-error";
+import { api, unwrapApiResponse } from "@/lib/axios";
+import type { IApiResponse } from "@/types/api";
 import type { RentalRequest } from "@/types/rental";
 
 export const useRentalRequestActions = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
-  const approveRequest = async (requestId: string): Promise<RentalRequest | null> => {
+  const runRentalAction = async (
+    endpoint: string,
+    successMessage: string,
+    fallbackError: string,
+  ): Promise<RentalRequest | null> => {
     setIsSubmitting(true);
     try {
-      const { data } = await api.patch(`/rentals/${requestId}/approve`);
+      const updated = await unwrapApiResponse(
+        api.patch<IApiResponse<RentalRequest>>(endpoint),
+        fallbackError,
+      );
 
-      if (!data.success) {
-        throw new Error(data.message || "Failed to approve request");
-      }
-
-      toast.success("Rental request approved successfully! ✅");
+      toast.success(successMessage);
 
       queryClient.invalidateQueries({ queryKey: ["rental-requests"] });
       queryClient.invalidateQueries({ queryKey: ["landlord-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["my-rentals"] });
+      queryClient.invalidateQueries({ queryKey: ["my-properties"] });
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-rentals"] });
 
-      return data.data;
+      return updated;
     } catch (error) {
-      const axiosError = error as {
-        response?: { data?: { message?: string } };
-        message?: string;
-      };
-      const message =
-        axiosError?.response?.data?.message ||
-        axiosError?.message ||
-        "Failed to approve request";
-      toast.error(message);
+      toast.error(extractApiErrorMessage(error, fallbackError));
       return null;
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const rejectRequest = async (requestId: string): Promise<RentalRequest | null> => {
-    setIsSubmitting(true);
-    try {
-      const { data } = await api.patch(`/rentals/${requestId}/reject`);
+  const approveRequest = (requestId: string) =>
+    runRentalAction(
+      `/rentals/${requestId}/approve`,
+      "Rental request approved successfully!",
+      "Failed to approve request",
+    );
 
-      if (!data.success) {
-        throw new Error(data.message || "Failed to reject request");
-      }
+  const rejectRequest = (requestId: string) =>
+    runRentalAction(
+      `/rentals/${requestId}/reject`,
+      "Rental request rejected.",
+      "Failed to reject request",
+    );
 
-      toast.success("Rental request rejected.");
+  const completeRental = (requestId: string) =>
+    runRentalAction(
+      `/rentals/${requestId}/complete`,
+      "Rental marked as completed and property is now available.",
+      "Failed to mark rental as completed",
+    );
 
-      queryClient.invalidateQueries({ queryKey: ["rental-requests"] });
-      queryClient.invalidateQueries({ queryKey: ["landlord-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["my-rentals"] });
-
-      return data.data;
-    } catch (error) {
-      const axiosError = error as {
-        response?: { data?: { message?: string } };
-        message?: string;
-      };
-      const message =
-        axiosError?.response?.data?.message ||
-        axiosError?.message ||
-        "Failed to reject request";
-      toast.error(message);
-      return null;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return { approveRequest, rejectRequest, isSubmitting };
+  return { approveRequest, rejectRequest, completeRental, isSubmitting };
 };

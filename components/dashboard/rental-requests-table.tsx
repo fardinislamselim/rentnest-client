@@ -13,8 +13,19 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import RequestTableSkeleton from "@/components/admin/request-table-skeleton";
-import { CheckCircle, XCircle, Clock, Eye } from "lucide-react";
+import { CheckCircle, CheckCircle2, XCircle, Clock, Eye } from "lucide-react";
 import Link from "next/link";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { RentalStatus } from "@/types/rental";
 import { cn } from "@/lib/utils";
 
@@ -81,7 +92,8 @@ function StatusBadge({ status }: { status: RentalStatus }) {
 
 export default function RentalRequestsTable() {
   const { data: requests, isLoading, error } = useRentalRequests();
-  const { approveRequest, rejectRequest, isSubmitting } = useRentalRequestActions();
+  const { approveRequest, rejectRequest, completeRental, isSubmitting } =
+    useRentalRequestActions();
 
   const handleApprove = async (id: string) => {
     await approveRequest(id);
@@ -89,6 +101,10 @@ export default function RentalRequestsTable() {
 
   const handleReject = async (id: string) => {
     await rejectRequest(id);
+  };
+
+  const handleComplete = async (id: string) => {
+    await completeRental(id);
   };
 
   if (isLoading) {
@@ -155,6 +171,7 @@ export default function RentalRequestsTable() {
               : "N/A";
             const status = request.status as RentalStatus;
             const isPending = status === "PENDING";
+            const isActive = status === "ACTIVE";
 
             return (
               <TableRow key={request.id}>
@@ -206,17 +223,62 @@ export default function RentalRequestsTable() {
                       </Button>
                     </div>
                   ) : (
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl border-border/60 hover:bg-muted/60 cursor-pointer"
-                    >
-                      <Link href={`/rentals/${request.id}`} className="flex items-center gap-1">
-                        <Eye className="h-3.5 w-3.5" />
-                        View
-                      </Link>
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      {isActive ? (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={isSubmitting}
+                              className="cursor-pointer rounded-xl border-purple-500/40 text-purple-600 hover:bg-purple-500/10 dark:text-purple-400"
+                            >
+                              <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                              Mark as Completed
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Mark rental as completed?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will complete the active stay for{" "}
+                                <span className="font-medium text-foreground">
+                                  {propertyTitle}
+                                </span>{" "}
+                                and make the property available for new rental
+                                requests.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => void handleComplete(request.id)}
+                                disabled={isSubmitting}
+                                className="bg-blue-600 text-white hover:bg-blue-700"
+                              >
+                                Confirm Completion
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      ) : null}
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="rounded-xl border-border/60 hover:bg-muted/60 cursor-pointer"
+                      >
+                        <Link
+                          href={`/rentals/${request.id}`}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          View
+                        </Link>
+                      </Button>
+                    </div>
                   )}
                 </TableCell>
               </TableRow>
