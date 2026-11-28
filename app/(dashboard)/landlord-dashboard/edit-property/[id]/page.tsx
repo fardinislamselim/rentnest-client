@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import EditPropertyForm from "@/components/dashboard/edit-property-form";
+import type { Category } from "@/hooks/use-categories";
 import { api, unwrapApiResponse } from "@/lib/axios";
 import type { IApiResponse } from "@/types/api";
 import type { IProperty } from "@/types/property";
@@ -21,19 +22,25 @@ export default async function EditPropertyPage({
     notFound();
   }
 
-  let initialProperty: IProperty | undefined;
-  try {
-    initialProperty = await unwrapApiResponse(
-      api.get<IApiResponse<IProperty>>(`/properties/${id}`),
-    );
-  } catch {
-    initialProperty = undefined;
-  }
+  const [propertyRes, categoriesRes] = await Promise.allSettled([
+    unwrapApiResponse(api.get<IApiResponse<IProperty>>(`/properties/${id}`)),
+    api.get<IApiResponse<Category[]>>("/categories"),
+  ]);
+
+  const initialProperty =
+    propertyRes.status === "fulfilled" ? propertyRes.value : undefined;
+  const categories =
+    categoriesRes.status === "fulfilled" &&
+    categoriesRes.value.data?.success &&
+    Array.isArray(categoriesRes.value.data.data)
+      ? categoriesRes.value.data.data
+      : [];
 
   return (
     <EditPropertyForm
       propertyId={id}
       initialProperty={initialProperty}
+      categories={categories}
     />
   );
 }

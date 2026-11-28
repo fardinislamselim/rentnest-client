@@ -3,11 +3,14 @@ import Link from "next/link";
 import {
   AlertCircle,
   ArrowLeft,
+  ArrowUpRight,
   Bath,
   Bed,
   CheckCircle2,
   MapPin,
   Maximize,
+  ShieldCheck,
+  Tag,
 } from "lucide-react";
 
 import Container from "@/components/layout/container";
@@ -17,10 +20,14 @@ import {
   PropertyReviewsSection,
   type PropertyReview,
 } from "@/components/property/PropertyReviewsSection";
+import { SafeHtmlRenderer } from "@/components/shared/SafeHtmlRenderer";
 import { WishlistButton } from "@/components/shared/WishlistButton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/axios";
 import type { BookedDateRange } from "@/lib/date-range";
+import { initialsOf } from "@/lib/format";
 import type { IApiResponse } from "@/types/api";
 import type { IProperty } from "@/types/property";
 
@@ -113,8 +120,10 @@ export default async function PropertyDetailsPage({
   }
 
   const area = property.size || property.area || 0;
-  const description =
-    property.description || "No description available for this property.";
+  const categoryName =
+    typeof property.category === "object"
+      ? property.category.name
+      : property.category || "Rental";
   const formattedPrice = property.price
     ? `BDT ${property.price.toLocaleString()}`
     : "BDT —";
@@ -122,7 +131,6 @@ export default async function PropertyDetailsPage({
   return (
     <div className="min-h-screen bg-background py-10 lg:py-16">
       <Container>
-        {/* Back Link */}
         <div className="mb-6">
           <Button
             asChild
@@ -135,9 +143,8 @@ export default async function PropertyDetailsPage({
           </Button>
         </div>
 
-        {/* Main Content Layout */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          {/* Left Column: Gallery, Details & Reviews */}
+          {/* Left Column: Gallery, Details, Host & Reviews */}
           <div className="flex flex-col gap-6 lg:col-span-8">
             <PropertyGallery
               propertyId={id}
@@ -146,9 +153,24 @@ export default async function PropertyDetailsPage({
               images={property.images}
             />
 
-            <div className="flex flex-col gap-4">
+            {/* Title, Short Title & Short Description */}
+            <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge className="border-0 bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                      <Tag className="mr-1 h-3 w-3" aria-hidden="true" />
+                      {categoryName}
+                    </Badge>
+                    {property.status ? (
+                      <Badge
+                        variant="outline"
+                        className="border-border/60 text-xs font-medium"
+                      >
+                        {property.status}
+                      </Badge>
+                    ) : null}
+                  </div>
                   <div className="flex items-center gap-3">
                     <h1 className="font-heading text-2xl font-extrabold text-foreground sm:text-3xl">
                       {property.title}
@@ -159,7 +181,12 @@ export default async function PropertyDetailsPage({
                       className="border border-border/60"
                     />
                   </div>
-                  <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                  {property.shortTitle ? (
+                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                      {property.shortTitle}
+                    </p>
+                  ) : null}
+                  <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4 shrink-0 text-blue-500" />
                     {property.location}
                   </p>
@@ -174,92 +201,142 @@ export default async function PropertyDetailsPage({
                 </div>
               </div>
 
-              {/* Specs Grid */}
-              <div className="grid grid-cols-3 gap-4 rounded-2xl border border-border/60 bg-card p-4 text-center sm:text-left">
-                <div className="flex flex-col items-center gap-2 sm:flex-row">
-                  <Bed className="h-5 w-5 text-blue-500" />
-                  <div>
-                    <span className="block text-xs text-muted-foreground">
-                      Bedrooms
-                    </span>
-                    <span className="text-sm font-bold text-foreground">
-                      {property.bedrooms} Beds
-                    </span>
-                  </div>
-                </div>
-                <div className="flex flex-col items-center gap-2 sm:flex-row">
-                  <Bath className="h-5 w-5 text-blue-500" />
-                  <div>
-                    <span className="block text-xs text-muted-foreground">
-                      Bathrooms
-                    </span>
-                    <span className="text-sm font-bold text-foreground">
-                      {property.bathrooms} Baths
-                    </span>
-                  </div>
-                </div>
-                <div className="flex flex-col items-center gap-2 sm:flex-row">
-                  <Maximize className="h-5 w-5 text-blue-500" />
-                  <div>
-                    <span className="block text-xs text-muted-foreground">
-                      Area
-                    </span>
-                    <span className="text-sm font-bold text-foreground">
-                      {area} sqft
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="flex flex-col gap-2 rounded-2xl border border-border/60 bg-card p-6">
-                <h2 className="font-heading text-lg font-bold text-foreground">
-                  Description
-                </h2>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-                  {description}
+              {property.shortDescription ? (
+                <p className="rounded-2xl border border-blue-500/20 bg-blue-500/5 px-4 py-3 text-sm leading-relaxed text-foreground/90">
+                  {property.shortDescription}
                 </p>
-              </div>
+              ) : null}
+            </div>
 
-              {/* Key Features */}
-              <div className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-6">
-                <h2 className="font-heading text-lg font-bold text-foreground">
-                  Key Amenities
-                </h2>
-                <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3 sm:text-sm">
-                  <div className="flex items-center gap-2 text-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" /> 24/7
-                    Security
-                  </div>
-                  <div className="flex items-center gap-2 text-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />{" "}
-                    Generator Backup
-                  </div>
-                  <div className="flex items-center gap-2 text-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />{" "}
-                    Parking Available
-                  </div>
-                  <div className="flex items-center gap-2 text-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />{" "}
-                    Balcony Access
-                  </div>
-                  <div className="flex items-center gap-2 text-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />{" "}
-                    High-speed Internet
-                  </div>
-                  <div className="flex items-center gap-2 text-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Lift
-                    Facility
-                  </div>
+            {/* Key Specs Bar */}
+            <div className="grid grid-cols-3 gap-4 rounded-2xl border border-border/60 bg-card p-4 text-center sm:text-left">
+              <div className="flex flex-col items-center gap-2 sm:flex-row">
+                <Bed className="h-5 w-5 text-blue-500" aria-hidden="true" />
+                <div>
+                  <span className="block text-xs text-muted-foreground">
+                    Bedrooms
+                  </span>
+                  <span className="text-sm font-bold text-foreground">
+                    {property.bedrooms} Beds
+                  </span>
                 </div>
               </div>
-
-              {/* Verified-Only Reviews */}
-              <PropertyReviewsSection
-                propertyId={id}
-                initialReviews={reviews}
-              />
+              <div className="flex flex-col items-center gap-2 sm:flex-row">
+                <Bath className="h-5 w-5 text-blue-500" aria-hidden="true" />
+                <div>
+                  <span className="block text-xs text-muted-foreground">
+                    Bathrooms
+                  </span>
+                  <span className="text-sm font-bold text-foreground">
+                    {property.bathrooms} Baths
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col items-center gap-2 sm:flex-row">
+                <Maximize className="h-5 w-5 text-blue-500" aria-hidden="true" />
+                <div>
+                  <span className="block text-xs text-muted-foreground">
+                    Size
+                  </span>
+                  <span className="text-sm font-bold text-foreground">
+                    {area > 0 ? `${area} sqft` : "N/A"}
+                  </span>
+                </div>
+              </div>
             </div>
+
+            {/* Sanitized Rich HTML Description */}
+            <div className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-6">
+              <h2 className="font-heading text-lg font-bold text-foreground">
+                About this Property
+              </h2>
+              <SafeHtmlRenderer html={property.description} />
+            </div>
+
+            {/* Landlord Host Card */}
+            {property.landlord ? (
+              <Link
+                href={`/landlords/${property.landlord.id}`}
+                className="group flex flex-col gap-4 rounded-2xl border border-border/60 bg-card p-6 transition-all hover:border-blue-500/40 hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-14 w-14 border border-border/60">
+                    {property.landlord.avatar ? (
+                      <AvatarImage
+                        src={property.landlord.avatar}
+                        alt={property.landlord.name}
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-blue-500/10 text-base font-bold text-blue-600 dark:text-blue-400">
+                        {initialsOf(property.landlord.name)}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-heading text-base font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                        Hosted by {property.landlord.name}
+                      </h3>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                        <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+                        Verified Host
+                      </span>
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                      {property.landlord.bio ||
+                        "View host profile and all available listings from this landlord."}
+                    </p>
+                  </div>
+                </div>
+
+                <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-blue-600 dark:text-blue-400">
+                  View Host Profile
+                  <ArrowUpRight
+                    className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    aria-hidden="true"
+                  />
+                </span>
+              </Link>
+            ) : null}
+
+            {/* Key Features */}
+            <div className="flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-6">
+              <h2 className="font-heading text-lg font-bold text-foreground">
+                Included Highlights
+              </h2>
+              <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-3 sm:text-sm">
+                <div className="flex items-center gap-2 text-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" /> 24/7
+                  Security
+                </div>
+                <div className="flex items-center gap-2 text-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />{" "}
+                  Generator Backup
+                </div>
+                <div className="flex items-center gap-2 text-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Parking
+                  Available
+                </div>
+                <div className="flex items-center gap-2 text-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Balcony
+                  Access
+                </div>
+                <div className="flex items-center gap-2 text-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />{" "}
+                  High-speed Internet
+                </div>
+                <div className="flex items-center gap-2 text-foreground">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Lift
+                  Facility
+                </div>
+              </div>
+            </div>
+
+            {/* Verified-Only Reviews */}
+            <PropertyReviewsSection
+              propertyId={id}
+              initialReviews={reviews}
+            />
           </div>
 
           {/* Right Column: Booking Request & Booked Dates Calendar */}

@@ -1,6 +1,7 @@
-import React from "react";
-import Container from "@/components/layout/container";
 import CreatePropertyForm from "@/components/dashboard/create-property-form";
+import type { Category } from "@/hooks/use-categories";
+import { api } from "@/lib/axios";
+import type { IApiResponse } from "@/types/api";
 
 export const metadata = {
   title: "Create Property - RentNest",
@@ -8,11 +9,15 @@ export const metadata = {
 };
 
 export default async function CreatePropertyPage() {
-  return (
-    <div className="min-h-screen bg-background py-10 lg:py-16">
-      <Container>
-        <CreatePropertyForm />
-      </Container>
-    </div>
-  );
+  let categories: Category[] = [];
+  try {
+    const res = await api.get<IApiResponse<Category[]>>("/categories");
+    if (res.data?.success && Array.isArray(res.data.data)) {
+      categories = res.data.data;
+    }
+  } catch {
+    categories = [];
+  }
+
+  return <CreatePropertyForm categories={categories} />;
 }

@@ -15,6 +15,7 @@ import {
 
 import { WishlistButton } from "@/components/shared/WishlistButton";
 import { Button } from "@/components/ui/button";
+import { stripHtmlTags } from "@/lib/sanitizeHtml";
 import type { Property } from "@/types/property";
 
 const FALLBACK_IMAGE =
@@ -115,9 +116,16 @@ export default function PropertyCard({
             {property.title}
           </h3>
 
-          {property.description && (
+          {property.shortTitle ? (
+            <p className="line-clamp-1 text-xs font-medium text-blue-600 dark:text-blue-400">
+              {property.shortTitle}
+            </p>
+          ) : null}
+
+          {(property.shortDescription || property.description) && (
             <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-              {property.description}
+              {property.shortDescription ||
+                stripHtmlTags(property.description || "")}
             </p>
           )}
         </div>

@@ -2,6 +2,8 @@ import type { PropertyStatus } from "@/types/property";
 
 export interface PropertyMutationInput {
   title?: string;
+  shortTitle?: string;
+  shortDescription?: string;
   description?: string;
   location?: string;
   price?: number;
@@ -26,6 +28,15 @@ export const buildPropertyFormData = (input: PropertyMutationInput): FormData =>
   const formData = new FormData();
 
   if (input.title !== undefined) formData.append("title", input.title);
+  if (input.shortTitle !== undefined && input.shortTitle.trim() !== "") {
+    formData.append("shortTitle", input.shortTitle.trim());
+  }
+  if (
+    input.shortDescription !== undefined &&
+    input.shortDescription.trim() !== ""
+  ) {
+    formData.append("shortDescription", input.shortDescription.trim());
+  }
   if (input.description !== undefined) {
     formData.append("description", input.description);
   }

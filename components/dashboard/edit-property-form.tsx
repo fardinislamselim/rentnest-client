@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
 
-import { PropertyForm } from "@/components/dashboard/property-form";
+import { PropertyForm } from "@/components/shared/PropertyForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Category } from "@/hooks/use-categories";
 import { useProperty } from "@/hooks/use-property";
 import { useUpdateProperty } from "@/hooks/use-update-property";
 import type { IProperty } from "@/types/property";
@@ -14,12 +16,15 @@ import type { IProperty } from "@/types/property";
 interface EditPropertyFormProps {
   propertyId: string;
   initialProperty?: IProperty;
+  categories?: Category[];
 }
 
 export default function EditPropertyForm({
   propertyId,
   initialProperty,
+  categories,
 }: EditPropertyFormProps) {
+  const router = useRouter();
   const {
     data: property,
     isLoading: propertyLoading,
@@ -29,25 +34,24 @@ export default function EditPropertyForm({
 
   if (propertyLoading) {
     return (
-      <div className="flex flex-col gap-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
         <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
           <Skeleton className="h-5 w-40 rounded" />
           <Skeleton className="mt-2 h-8 w-64 rounded" />
           <Skeleton className="mt-1 h-4 w-96 rounded" />
         </div>
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+          <div className="space-y-6 lg:col-span-8">
             <Card className="border-border/60">
               <CardContent className="space-y-4 p-6">
-                <Skeleton className="h-4 w-12 rounded" />
-                <Skeleton className="h-12 w-full rounded" />
-                <Skeleton className="mt-4 h-4 w-12 rounded" />
+                <Skeleton className="h-4 w-24 rounded" />
+                <Skeleton className="h-10 w-full rounded" />
                 <Skeleton className="h-24 w-full rounded" />
               </CardContent>
             </Card>
           </div>
-          <div className="space-y-6">
-            <Skeleton className="h-48 w-full rounded-2xl" />
+          <div className="lg:col-span-4">
+            <Skeleton className="h-80 w-full rounded-2xl" />
           </div>
         </div>
       </div>
@@ -79,11 +83,17 @@ export default function EditPropertyForm({
   return (
     <PropertyForm
       mode="edit"
+      categories={categories}
       initialProperty={property}
       isSubmitting={isSubmitting}
       onSubmitProperty={async (data) => {
         const result = await updateProperty(propertyId, data);
-        return Boolean(result);
+        if (result) {
+          router.push("/landlord-dashboard/my-properties");
+          router.refresh();
+          return true;
+        }
+        return false;
       }}
     />
   );

@@ -10,6 +10,8 @@ import type { IProperty, PropertyStatus } from "@/types/property";
 
 export interface UpdatePropertyPayload {
   title?: string;
+  shortTitle?: string;
+  shortDescription?: string;
   description?: string;
   location?: string;
   price?: number;
